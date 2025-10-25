@@ -1,0 +1,36 @@
+{
+  "name": "beach-cleanup-api-server",
+  "version": "1.0.0",
+  "description": "Backend API server for Beach Cleanup social media app",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "init-db": "node src/config/initDatabase.js"
+  },
+  "keywords": [
+    "beach-cleanup",
+    "volunteering",
+    "social-media",
+    "ocean-conservation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "dotenv": "^16.3.1",
+    "better-sqlite3": "^9.2.2",
+    "axios": "^1.6.5",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "node-cache": "^5.1.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}
