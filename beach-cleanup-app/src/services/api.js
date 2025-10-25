@@ -62,7 +62,16 @@ const api = {
 
   // User endpoints
   users: {
+    // Get current user's profile
+    getMe: () => fetchAPI('/users/me'),
+    // Update current user's profile
+    updateMe: (updates) => fetchAPI('/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    }),
+    // Get any user's public profile
     getProfile: (userId) => fetchAPI(`/users/${userId}`),
+    // Legacy endpoints - may need backend implementation
     updateProfile: (userId, updates) => fetchAPI(`/users/${userId}`, {
       method: 'PATCH',
       body: JSON.stringify(updates),

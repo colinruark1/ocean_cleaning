@@ -10,7 +10,7 @@ export function getMe(req, res, next) {
     const userId = req.user.userId;
 
     // Get user data
-    const user = db.prepare('SELECT id, username, email, bio, profilePictureUrl, createdAt FROM users WHERE id = ?').get(userId);
+    const user = db.prepare('SELECT id, username, email, bio, location, profilePictureUrl, createdAt FROM users WHERE id = ?').get(userId);
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -27,6 +27,7 @@ export function getMe(req, res, next) {
       username: user.username,
       email: user.email,
       bio: user.bio,
+      location: user.location,
       profilePictureUrl: user.profilePictureUrl,
       eventsOrganized,
       eventsAttended,
@@ -45,15 +46,30 @@ export function updateMe(req, res, next) {
   try {
     const db = getDatabase();
     const userId = req.user.userId;
-    const { bio, profilePictureUrl } = req.body;
+    const { username, bio, location, profilePictureUrl } = req.body;
 
     // Build update query dynamically based on provided fields
     const updates = [];
     const values = [];
 
+    if (username !== undefined) {
+      // Check if username is already taken by another user
+      const existingUser = db.prepare('SELECT id FROM users WHERE username = ? AND id != ?').get(username, userId);
+      if (existingUser) {
+        return res.status(400).json({ error: 'Username already taken' });
+      }
+      updates.push('username = ?');
+      values.push(username);
+    }
+
     if (bio !== undefined) {
       updates.push('bio = ?');
       values.push(bio);
+    }
+
+    if (location !== undefined) {
+      updates.push('location = ?');
+      values.push(location);
     }
 
     if (profilePictureUrl !== undefined) {
@@ -76,7 +92,7 @@ export function updateMe(req, res, next) {
     db.prepare(updateQuery).run(...values);
 
     // Get updated user
-    const user = db.prepare('SELECT id, username, email, bio, profilePictureUrl, createdAt, updatedAt FROM users WHERE id = ?').get(userId);
+    const user = db.prepare('SELECT id, username, email, bio, location, profilePictureUrl, createdAt, updatedAt FROM users WHERE id = ?').get(userId);
 
     res.status(200).json(user);
   } catch (error) {
@@ -94,7 +110,7 @@ export function getUserById(req, res, next) {
     const { userId } = req.params;
 
     // Get user data (public profile only)
-    const user = db.prepare('SELECT id, username, bio, profilePictureUrl, createdAt FROM users WHERE id = ?').get(userId);
+    const user = db.prepare('SELECT id, username, bio, location, profilePictureUrl, createdAt FROM users WHERE id = ?').get(userId);
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -107,6 +123,7 @@ export function getUserById(req, res, next) {
       userId: user.id,
       username: user.username,
       bio: user.bio,
+      location: user.location,
       profilePictureUrl: user.profilePictureUrl,
       eventsOrganized,
       createdAt: user.createdAt

@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Users, User, Waves } from 'lucide-react';
+import { Home, Calendar, Users, User, Waves, LogIn, UserPlus } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 /**
  * Main navigation component
@@ -7,6 +8,7 @@ import { Home, Calendar, Users, User, Waves } from 'lucide-react';
  */
 const Navigation = () => {
   const location = useLocation();
+  const { isAuthenticated, user } = useAuth();
 
   const isActive = (path) => {
     return location.pathname === path;
@@ -46,15 +48,34 @@ const Navigation = () => {
             </div>
           </div>
 
-          {/* Profile button */}
-          <div className="flex items-center">
-            <Link
-              to="/profile"
-              className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-ocean-600 hover:bg-ocean-700 transition-colors"
-            >
-              <User className="h-4 w-4 mr-1" />
-              Profile
-            </Link>
+          {/* Auth buttons */}
+          <div className="flex items-center space-x-2">
+            {isAuthenticated ? (
+              <Link
+                to="/profile"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-ocean-600 hover:bg-ocean-700 transition-colors"
+              >
+                <User className="h-4 w-4 mr-1" />
+                Profile
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center px-4 py-2 border border-ocean-600 text-sm font-medium rounded-full text-ocean-600 hover:bg-ocean-50 transition-colors"
+                >
+                  <LogIn className="h-4 w-4 mr-1" />
+                  Log In
+                </Link>
+                <Link
+                  to="/register"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-ocean-600 hover:bg-ocean-700 transition-colors"
+                >
+                  <UserPlus className="h-4 w-4 mr-1" />
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -76,17 +97,44 @@ const Navigation = () => {
               {label}
             </Link>
           ))}
-          <Link
-            to="/profile"
-            className={`flex flex-col items-center px-3 py-2 text-xs font-medium transition-colors ${
-              isActive('/profile')
-                ? 'text-ocean-600'
-                : 'text-gray-500'
-            }`}
-          >
-            <User className="h-5 w-5 mb-1" />
-            Profile
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              to="/profile"
+              className={`flex flex-col items-center px-3 py-2 text-xs font-medium transition-colors ${
+                isActive('/profile')
+                  ? 'text-ocean-600'
+                  : 'text-gray-500'
+              }`}
+            >
+              <User className="h-5 w-5 mb-1" />
+              Profile
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className={`flex flex-col items-center px-3 py-2 text-xs font-medium transition-colors ${
+                  isActive('/login')
+                    ? 'text-ocean-600'
+                    : 'text-gray-500'
+                }`}
+              >
+                <LogIn className="h-5 w-5 mb-1" />
+                Log In
+              </Link>
+              <Link
+                to="/register"
+                className={`flex flex-col items-center px-3 py-2 text-xs font-medium transition-colors ${
+                  isActive('/register')
+                    ? 'text-ocean-600'
+                    : 'text-gray-500'
+                }`}
+              >
+                <UserPlus className="h-5 w-5 mb-1" />
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

@@ -25,6 +25,7 @@ db.exec(`
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     bio TEXT,
+    location TEXT,
     profilePictureUrl TEXT,
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import api from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -41,6 +42,7 @@ export const AuthProvider = ({ children }) => {
       // TODO: Replace with actual API call
       const mockUser = {
         id: '1',
+        username: 'alexrivera',
         name: 'Alex Rivera',
         email: credentials.email,
         location: 'Santa Monica, CA',
@@ -84,7 +86,7 @@ export const AuthProvider = ({ children }) => {
 
   /**
    * Register function
-   * @param {Object} userData - New user data
+   * @param {Object} userData - New user data (username, email, password, bio, location)
    */
   const register = async (userData) => {
     try {
@@ -92,8 +94,13 @@ export const AuthProvider = ({ children }) => {
       // TODO: Replace with actual API call
       const newUser = {
         id: Date.now().toString(),
-        ...userData,
+        username: userData.username,
+        name: userData.username, // Use username as display name for now
+        email: userData.email,
+        bio: userData.bio || '',
+        location: userData.location || '',
         joined: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+        avatar: null,
       };
 
       setUser(newUser);
@@ -116,7 +123,12 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (updates) => {
     try {
       setIsLoading(true);
-      const updatedUser = { ...user, ...updates };
+
+      // Call backend API to update profile
+      const updatedUserData = await api.users.updateMe(updates);
+
+      // Update local state with response from backend
+      const updatedUser = { ...user, ...updatedUserData };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
 
