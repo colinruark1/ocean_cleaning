@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { MapPin, Calendar, Trash2, Users, TrendingUp, Award } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { mockUser, mockStats, mockAchievements } from '../services/mockData';
+import { mockStats, mockAchievements } from '../services/mockData';
 import { formatDate, calculatePercentage } from '../utils/helpers';
 import { Card, CardHeader, Avatar, StatCard, Badge, Button } from '../components/ui';
+import ProfileEditModal from '../components/ProfileEditModal';
 
 /**
  * Profile Page
@@ -10,8 +12,10 @@ import { Card, CardHeader, Avatar, StatCard, Badge, Button } from '../components
  * Refactored with industry-standard patterns
  */
 const Profile = () => {
-  // TODO: Get actual user from auth context when implemented
-  const user = mockUser;
+  const { user, updateProfile } = useAuth();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // TODO: Fetch real stats and achievements from backend
   const stats = mockStats;
   const achievements = mockAchievements;
 
@@ -48,6 +52,24 @@ const Profile = () => {
   const nextMilestone = 50;
   const progress = calculatePercentage(stats.totalCleanups, nextMilestone);
 
+  const handleSaveProfile = async (updates) => {
+    const result = await updateProfile(updates);
+    if (!result.success) {
+      throw new Error(result.error);
+    }
+  };
+
+  // Show loading or login prompt if no user
+  if (!user) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+          <p className="text-blue-800">Please log in to view your profile.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Profile Header */}
@@ -70,12 +92,22 @@ const Profile = () => {
                   Joined {user.joined}
                 </span>
               </div>
-              <p className="mt-4 text-gray-700 max-w-2xl">{user.bio}</p>
+              {user.bio && <p className="mt-4 text-gray-700 max-w-2xl">{user.bio}</p>}
             </div>
-            <Button variant="outline">Edit Profile</Button>
+            <Button variant="outline" onClick={() => setIsEditModalOpen(true)}>
+              Edit Profile
+            </Button>
           </div>
         </div>
       </Card>
+
+      {/* Profile Edit Modal */}
+      <ProfileEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        user={user}
+        onSave={handleSaveProfile}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         {/* Stats Section */}

@@ -12,6 +12,8 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Events = lazy(() => import('./pages/Events'));
 const Groups = lazy(() => import('./pages/Groups'));
 const Profile = lazy(() => import('./pages/Profile'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
 
 /**
  * Main App Component
@@ -35,6 +37,8 @@ function App() {
                   <Route path="/events" element={<Events />} />
                   <Route path="/groups" element={<Groups />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
                 </Routes>
               </Suspense>
             </div>

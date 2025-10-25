@@ -1,18 +1,20 @@
-import { MapPin, Trash2, Users, TrendingUp, Award } from 'lucide-react';
+import { MapPin, Trash2, Users, Award, Calendar, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useActivities } from '../hooks/useActivities';
+import { useAuth } from '../contexts/AuthContext';
 import { mockStats } from '../services/mockData';
-import { Card, CardHeader, Avatar, StatCard, LoadingSpinner, EmptyState, Button } from '../components/ui';
+import { Card, CardHeader, Avatar, LoadingSpinner, EmptyState, Button, StatCard } from '../components/ui';
 
 /**
  * Dashboard Page
- * Shows user stats and activity feed
+ * Shows community activity feed and user stats overview
  * Refactored with industry-standard patterns
  */
 const Dashboard = () => {
   const { activities, isLoading, error } = useActivities();
+  const { user } = useAuth();
 
-  // TODO: Replace with real user stats from API/context
+  // TODO: Fetch real stats from backend
   const stats = mockStats;
 
   if (error) {
@@ -27,33 +29,53 @@ const Dashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Welcome Section */}
+      {user && (
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome back, {user.name || user.username}!
+          </h1>
+          <p className="text-gray-600">Here's your impact summary and recent community activity.</p>
+        </div>
+      )}
+
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title="Total Cleanups"
-          value={stats.totalCleanups}
-          icon={<Trash2 className="h-12 w-12" />}
-          color="ocean"
-        />
-        <StatCard
-          title="Trash Collected"
-          value={stats.totalTrash}
-          icon={<Award className="h-12 w-12" />}
-          color="green"
-        />
-        <StatCard
-          title="Distance Covered"
-          value={stats.totalDistance}
-          icon={<MapPin className="h-12 w-12" />}
-          color="blue"
-        />
-        <StatCard
-          title="Global Rank"
-          value={stats.rank}
-          icon={<TrendingUp className="h-12 w-12" />}
-          color="orange"
-        />
-      </div>
+      {user && (
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-900">Your Impact</h2>
+            <Link to="/profile" className="text-ocean-600 hover:text-ocean-700 text-sm font-medium">
+              View Full Profile →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <StatCard
+              title="Total Cleanups"
+              value={stats.totalCleanups}
+              icon={<Trash2 className="h-8 w-8" />}
+              color="ocean"
+            />
+            <StatCard
+              title="Trash Collected"
+              value={stats.totalTrash}
+              icon={<Award className="h-8 w-8" />}
+              color="green"
+            />
+            <StatCard
+              title="Events Organized"
+              value={stats.eventsOrganized}
+              icon={<Calendar className="h-8 w-8" />}
+              color="purple"
+            />
+            <StatCard
+              title="Global Rank"
+              value={stats.rank}
+              icon={<TrendingUp className="h-8 w-8" />}
+              color="orange"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Activity Feed */}
       <Card>
