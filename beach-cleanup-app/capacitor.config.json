@@ -1,5 +1,18 @@
 {
   "appId": "com.oceanclean.app",
   "appName": "OceanClean",
-  "webDir": "dist"
+  "webDir": "dist",
+  "plugins": {
+    "Geolocation": {
+      "androidPermissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#0ea5e9",
+      "sound": "beep.wav"
+    }
+  }
 }

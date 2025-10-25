@@ -185,3 +185,69 @@ export const searchFilter = (array, query, keys = []) => {
     });
   });
 };
+
+/**
+ * Calculate distance between two coordinates using Haversine formula
+ * @param {Object} coord1 - First coordinate {lat, lng}
+ * @param {Object} coord2 - Second coordinate {lat, lng}
+ * @returns {number} Distance in kilometers
+ */
+export const calculateDistance = (coord1, coord2) => {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = toRadians(coord2.lat - coord1.lat);
+  const dLng = toRadians(coord2.lng - coord1.lng);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRadians(coord1.lat)) *
+      Math.cos(toRadians(coord2.lat)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+
+  return distance;
+};
+
+/**
+ * Convert degrees to radians
+ * @param {number} degrees
+ * @returns {number} Radians
+ */
+const toRadians = (degrees) => {
+  return degrees * (Math.PI / 180);
+};
+
+/**
+ * Format distance for display
+ * @param {number} distanceKm - Distance in kilometers
+ * @returns {string} Formatted distance string
+ */
+export const formatDistance = (distanceKm) => {
+  if (distanceKm < 1) {
+    return `${Math.round(distanceKm * 1000)}m`;
+  }
+  return `${distanceKm.toFixed(1)}km`;
+};
+
+/**
+ * Find nearby events based on user's location
+ * @param {Array} events - Array of events with coordinates
+ * @param {Object} userLocation - User's location {lat, lng}
+ * @param {number} radiusKm - Search radius in kilometers
+ * @returns {Array} Events within the radius, sorted by distance
+ */
+export const findNearbyEvents = (events, userLocation, radiusKm = 10) => {
+  if (!userLocation) return [];
+
+  const eventsWithDistance = events
+    .map(event => ({
+      ...event,
+      distance: calculateDistance(userLocation, event.coordinates),
+    }))
+    .filter(event => event.distance <= radiusKm)
+    .sort((a, b) => a.distance - b.distance);
+
+  return eventsWithDistance;
+};
