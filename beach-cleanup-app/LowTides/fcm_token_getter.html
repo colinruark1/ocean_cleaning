@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCM Token Getter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex items-center justify-center min-h-screen">
+
+    <div class="max-w-2xl w-full bg-gray-800 p-8 rounded-lg shadow-xl">
+        <h1 class="text-3xl font-bold mb-4">🌊 Low Tide Alerts - Token Setup</h1>
+        <p class="mb-6 text-gray-300">This page helps you generate an FCM (Firebase Cloud Messaging) token for testing push notifications.</p>
+
+        <div class="bg-yellow-900 border border-yellow-700 rounded-lg p-4 mb-6">
+            <h2 class="font-bold text-yellow-200 mb-2">⚠️ IMPORTANT: Get Your VAPID Key First!</h2>
+            <ol class="list-decimal list-inside space-y-2 text-sm text-yellow-100">
+                <li>Go to <a href="https://console.firebase.google.com" target="_blank" class="underline">Firebase Console</a></li>
+                <li>Select your "shore-connect" project</li>
+                <li>Click the gear icon ⚙️ > Project Settings</li>
+                <li>Go to "Cloud Messaging" tab</li>
+                <li>Scroll to "Web Push certificates"</li>
+                <li>Click "Generate key pair" (if not already done)</li>
+                <li>Copy the VAPID key and paste it below</li>
+            </ol>
+        </div>
+
+        <div class="mb-6">
+            <label for="vapidInput" class="block text-sm font-medium text-gray-400 mb-2">VAPID Key:</label>
+            <input type="text" id="vapidInput"
+                   placeholder="Paste your VAPID key here from Firebase Console"
+                   class="w-full p-3 bg-gray-900 text-gray-300 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <button id="getTokenButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+            Get My FCM Token
+        </button>
+
+        <div class="mt-6">
+            <label for="tokenDisplay" class="block text-sm font-medium text-gray-400 mb-2">Your FCM Token (Copy this):</label>
+            <textarea id="tokenDisplay" rows="6" class="w-full p-3 bg-gray-900 text-gray-300 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>Waiting for token...</textarea>
+            <button id="copyButton" class="mt-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">
+                Copy Token to Clipboard
+            </button>
+        </div>
+
+        <div class="mt-6 bg-gray-900 border border-gray-700 rounded-lg p-4">
+            <h3 class="font-bold text-gray-300 mb-2">Next Steps:</h3>
+            <ol class="list-decimal list-inside space-y-1 text-sm text-gray-400">
+                <li>Once you get your token, copy it</li>
+                <li>Open <code class="bg-gray-800 px-1">LowTides/run_notification_logic.cjs</code></li>
+                <li>Paste it into the <code class="bg-gray-800 px-1">FAKE_TEST_TOKEN</code> variable (line 64)</li>
+                <li>Run the script: <code class="bg-gray-800 px-1">node run_notification_logic.cjs</code></li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Imports -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
+
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8WizpujwEMxPpVZCI8MMl1Ubd4kcZB2k",
+            authDomain: "shore-connect.firebaseapp.com",
+            projectId: "shore-connect",
+            storageBucket: "shore-connect.firebasestorage.app",
+            messagingSenderId: "511550791613",
+            appId: "1:511550791613:web:fb282c8ad7c201c2f37cd4",
+            measurementId: "G-VC5VFN9EGC"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        let messaging = null;
+        try {
+            messaging = firebase.messaging();
+        } catch (err) {
+            console.error('Firebase messaging initialization error:', err);
+        }
+
+        const tokenDisplay = document.getElementById('tokenDisplay');
+        const vapidInput = document.getElementById('vapidInput');
+        const button = document.getElementById('getTokenButton');
+        const copyButton = document.getElementById('copyButton');
+
+        // Check if page is served correctly
+        if (window.location.protocol === 'file:') {
+            tokenDisplay.textContent = "❌ ERROR: This page must be served over HTTP/HTTPS!\n\nOpen a terminal and run:\n  cd LowTides\n  python3 -m http.server 8000\n\nThen visit: http://localhost:8000/fcm_token_getter.html";
+            button.disabled = true;
+        }
+
+        // Check browser support
+        if (!('serviceWorker' in navigator)) {
+            tokenDisplay.textContent = "❌ ERROR: Service Workers not supported in this browser.\n\nPlease use Chrome, Firefox, or Edge.";
+            button.disabled = true;
+        }
+
+        if (!messaging) {
+            tokenDisplay.textContent = "❌ ERROR: Firebase Messaging failed to initialize.\n\nCheck browser console (F12) for details.";
+            button.disabled = true;
+        }
+
+        button.addEventListener('click', async () => {
+            const VAPID_KEY = vapidInput.value.trim();
+
+            if (!VAPID_KEY) {
+                alert('⚠️ Please paste your VAPID key first!');
+                vapidInput.focus();
+                return;
+            }
+
+            // Validate VAPID key format
+            // VAPID keys are base64url encoded and typically start with 'B' and are ~88 characters
+            if (VAPID_KEY.length < 80 || VAPID_KEY.length > 100) {
+                tokenDisplay.textContent = `❌ Invalid VAPID Key Format\n\nThe key should be ~88 characters long.\nYours is ${VAPID_KEY.length} characters.\n\nMake sure you copied the VAPID key from:\nFirebase Console > Project Settings > Cloud Messaging > Web Push certificates\n\nLook for "Key pair" - NOT "Server key" or "Sender ID"`;
+                return;
+            }
+
+            if (!VAPID_KEY.startsWith('B')) {
+                tokenDisplay.textContent = `❌ Invalid VAPID Key Format\n\nVAPID keys typically start with 'B'.\nYours starts with '${VAPID_KEY.charAt(0)}'.\n\nMake sure you copied the full key from:\nFirebase Console > Project Settings > Cloud Messaging > Web Push certificates\n\nNOT the "Server key" (which starts with "AAAA")`;
+                return;
+            }
+
+            console.log('[1/4] Requesting notification permission...');
+            console.log('VAPID key length:', VAPID_KEY.length);
+            console.log('VAPID key preview:', VAPID_KEY.substring(0, 20) + '...');
+            tokenDisplay.textContent = "[1/4] Requesting notification permission...";
+
+            try {
+                // 1. Request permission from the user
+                const permission = await Notification.requestPermission();
+                console.log('Permission result:', permission);
+
+                if (permission === 'granted') {
+                    console.log('[2/4] Permission granted. Registering service worker...');
+                    tokenDisplay.textContent = "[2/4] Registering service worker...";
+
+                    // 2. Register a simple service worker for FCM
+                    let registration;
+                    try {
+                        registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                        console.log('[3/4] Service worker registered:', registration);
+                        tokenDisplay.textContent = "[3/4] Getting FCM token...";
+
+                        // Wait for service worker to be ready
+                        await navigator.serviceWorker.ready;
+                    } catch (swError) {
+                        console.warn('Service worker registration failed, trying without it:', swError);
+                        tokenDisplay.textContent = "[3/4] Getting FCM token (no SW)...";
+                    }
+
+                    // 3. Get the token
+                    console.log('[4/4] Requesting token with VAPID key...');
+                    const token = await messaging.getToken({
+                        vapidKey: VAPID_KEY,
+                        serviceWorkerRegistration: registration
+                    });
+
+                    if (token) {
+                        console.log('✅ Token received:', token);
+                        tokenDisplay.textContent = token;
+                        copyButton.classList.remove('hidden');
+
+                        // Also log to console for easy copying
+                        console.log('\n🎉 SUCCESS! Your FCM Token:\n' + token + '\n');
+                    } else {
+                        console.error('No registration token available.');
+                        tokenDisplay.textContent = "❌ No token available.\n\nPossible issues:\n- Invalid VAPID key\n- Service worker not registered\n- Browser blocking\n\nCheck console (F12) for details.";
+                    }
+
+                } else {
+                    console.warn('Notification permission denied:', permission);
+                    tokenDisplay.textContent = `❌ Permission ${permission}.\n\nTo fix:\n1. Click the lock icon in the address bar\n2. Reset notification permissions\n3. Try again`;
+                }
+            } catch (err) {
+                console.error('Error retrieving token:', err);
+                console.error('Error details:', {
+                    name: err.name,
+                    code: err.code,
+                    message: err.message,
+                    stack: err.stack
+                });
+
+                let errorMsg = `❌ Error: ${err.message}\n\n`;
+
+                if (err.code === 'messaging/unsupported-browser') {
+                    errorMsg += 'Your browser does not support Firebase messaging.\nTry Chrome, Firefox, or Edge.';
+                } else if (err.code === 'messaging/permission-blocked') {
+                    errorMsg += 'Notification permission is blocked.\nReset site permissions and try again.';
+                } else if (err.code === 'messaging/token-subscribe-failed') {
+                    errorMsg += 'Failed to subscribe to FCM.\nCheck that your VAPID key is correct.';
+                } else {
+                    errorMsg += 'Check console (F12) for details.\nMake sure:\n- VAPID key is correct\n- Page served over HTTP/HTTPS\n- Service worker can be registered';
+                }
+
+                tokenDisplay.textContent = errorMsg;
+            }
+        });
+
+        // Copy to clipboard
+        copyButton.addEventListener('click', () => {
+            tokenDisplay.select();
+            document.execCommand('copy');
+            copyButton.textContent = '✅ Copied!';
+            setTimeout(() => {
+                copyButton.textContent = 'Copy Token to Clipboard';
+            }, 2000);
+        });
+
+        // Handle incoming messages (for testing)
+        if (messaging) {
+            messaging.onMessage((payload) => {
+                console.log('📨 Message received in foreground:', payload);
+                alert(`📨 Notification Received!\n\n${payload.notification.title}\n${payload.notification.body}`);
+            });
+        }
+
+        // Log initial diagnostics
+        console.log('=== FCM Token Getter Diagnostics ===');
+        console.log('Protocol:', window.location.protocol);
+        console.log('Host:', window.location.host);
+        console.log('Service Worker supported:', 'serviceWorker' in navigator);
+        console.log('Messaging initialized:', messaging !== null);
+        console.log('Notification permission:', Notification.permission);
+        console.log('====================================');
+    </script>
+</body>
+</html>
+
