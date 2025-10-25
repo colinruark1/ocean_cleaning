@@ -1,0 +1,209 @@
+================================================================================
+DEPENDENCIES SETUP GUIDE - OceanClean Beach Cleanup App
+================================================================================
+
+This document outlines all dependencies and setup requirements for the
+OceanClean Beach Cleanup App.
+
+================================================================================
+PREREQUISITES
+================================================================================
+
+Required Software:
+------------------
+- Node.js: v18.0.0 or higher
+- npm: v9.0.0 or higher (comes with Node.js)
+
+For Android Development (Optional):
+------------------------------------
+- Android Studio: Latest version
+- Java Development Kit (JDK): v17 or higher
+- Android SDK: API Level 24 or higher
+
+================================================================================
+VERIFY YOUR ENVIRONMENT
+================================================================================
+
+Run these commands to check your installed versions:
+
+    node --version    # Should be v18.0.0 or higher
+    npm --version     # Should be v9.0.0 or higher
+    java --version    # (Android only) Should be v17 or higher
+
+================================================================================
+INSTALLING DEPENDENCIES
+================================================================================
+
+1. Navigate to Project Directory:
+
+   cd beach-cleanup-app
+
+2. Install Node Modules:
+
+   npm install
+
+This will install all dependencies listed below.
+
+================================================================================
+PRODUCTION DEPENDENCIES
+================================================================================
+
+The following packages are required to run the application:
+
+Package                           Version     Purpose
+--------------------------------------------------------------------------------
+@capacitor/android                ^7.4.4      Native Android platform support
+@capacitor/cli                    ^7.4.4      Capacitor command-line tools
+@capacitor/core                   ^7.4.4      Core Capacitor runtime
+@capacitor/geolocation            ^7.1.5      Native GPS/location services
+@capacitor/local-notifications    ^7.0.3      Push notification support
+@react-google-maps/api            ^2.20.7     Google Maps integration for React
+firebase-admin                    ^13.5.0     Firebase backend services
+lucide-react                      ^0.548.0    Icon library
+react                             ^19.1.1     React framework
+react-dom                         ^19.1.1     React DOM rendering
+react-router-dom                  ^7.9.4      Client-side routing
+
+================================================================================
+DEVELOPMENT DEPENDENCIES
+================================================================================
+
+The following packages are only needed during development:
+
+Package                           Version     Purpose
+--------------------------------------------------------------------------------
+@eslint/js                        ^9.36.0     ESLint JavaScript rules
+@tailwindcss/postcss              ^4.1.16     Tailwind CSS PostCSS plugin
+@types/react                      ^19.1.16    TypeScript types for React
+@types/react-dom                  ^19.1.9     TypeScript types for React DOM
+@vitejs/plugin-react              ^5.0.4      Vite plugin for React
+autoprefixer                      ^10.4.21    CSS vendor prefix automation
+eslint                            ^9.36.0     Code linting
+eslint-plugin-react-hooks         ^5.2.0      ESLint rules for React Hooks
+eslint-plugin-react-refresh       ^0.4.22     ESLint rules for React Refresh
+globals                           ^16.4.0     Global variables for ESLint
+postcss                           ^8.5.6      CSS transformation tool
+tailwindcss                       ^4.1.16     Utility-first CSS framework
+vite                              ^7.1.7      Build tool and dev server
+
+================================================================================
+VERIFYING INSTALLATION
+================================================================================
+
+After running 'npm install', verify everything is installed correctly:
+
+    # Check for node_modules directory
+    ls node_modules
+
+    # Verify specific critical packages
+    npm list react
+    npm list @capacitor/core
+    npm list vite
+
+================================================================================
+COMMON INSTALLATION ISSUES
+================================================================================
+
+Issue: npm install fails with permission errors
+------------------------------------------------
+Solution: Don't use sudo. If needed, fix npm permissions:
+
+    mkdir ~/.npm-global
+    npm config set prefix '~/.npm-global'
+    export PATH=~/.npm-global/bin:$PATH
+
+Issue: Package version conflicts
+---------------------------------
+Solution: Delete node_modules and package-lock.json, then reinstall:
+
+    rm -rf node_modules package-lock.json
+    npm install
+
+Issue: Capacitor plugins not found
+-----------------------------------
+Solution: Sync Capacitor after installation:
+
+    npx cap sync
+
+Issue: Android build fails
+---------------------------
+Solution: Ensure Android Studio and JDK 17+ are installed, then sync:
+
+    npx cap sync android
+
+================================================================================
+ENVIRONMENT VARIABLES
+================================================================================
+
+After installing dependencies, set up your environment variables:
+
+1. Copy the example file:
+
+   cp .env.example .env
+
+2. Add your Google Maps API key to .env:
+
+   VITE_GOOGLE_MAPS_API_KEY=your_actual_api_key_here
+
+See the README.md for detailed API key setup instructions.
+
+================================================================================
+KEEPING DEPENDENCIES UPDATED
+================================================================================
+
+Check for outdated packages:
+    npm outdated
+
+Update specific package:
+    npm update package-name
+
+Update all packages (use with caution):
+    npm update
+
+================================================================================
+DEVELOPMENT WORKFLOW
+================================================================================
+
+Once all dependencies are installed:
+
+1. Web Development:
+
+   npm run dev
+
+2. Production Build:
+
+   npm run build
+
+3. Android Development:
+
+   npm run build
+   npx cap sync android
+   npx cap open android
+
+================================================================================
+ADDITIONAL RESOURCES
+================================================================================
+
+- Node.js Installation: https://nodejs.org/
+- Capacitor Documentation: https://capacitorjs.com/docs
+- Vite Documentation: https://vitejs.dev/
+- React Documentation: https://react.dev/
+- Tailwind CSS Documentation: https://tailwindcss.com/
+- Google Maps API Setup:
+  https://developers.google.com/maps/documentation/javascript/get-api-key
+
+================================================================================
+GETTING HELP
+================================================================================
+
+If you encounter issues with dependencies:
+
+1. Check this document for common issues
+2. Delete node_modules and package-lock.json and reinstall
+3. Ensure you're using compatible Node.js version
+4. Check the README.md for project-specific setup
+5. Create an issue in the project repository
+
+================================================================================
+Last Updated: Based on package.json dependencies as of current version
+================================================================================
