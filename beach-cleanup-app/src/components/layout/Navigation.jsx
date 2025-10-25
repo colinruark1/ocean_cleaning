@@ -53,7 +53,8 @@ const Navigation = () => {
             {isAuthenticated ? (
               <Link
                 to="/profile"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-ocean-600 hover:bg-ocean-700 transition-colors"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-ocean-600 hover:bg-ocean-700 transition-colors shadow-sm"
+                style={{ backgroundColor: '#0284c7', color: '#ffffff' }}
               >
                 <User className="h-4 w-4 mr-1" />
                 Profile

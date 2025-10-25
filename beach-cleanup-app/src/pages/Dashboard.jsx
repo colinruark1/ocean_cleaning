@@ -1,9 +1,8 @@
-import { MapPin, Trash2, Users, Award, Calendar, TrendingUp } from 'lucide-react';
+import { MapPin, Trash2, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useActivities } from '../hooks/useActivities';
 import { useAuth } from '../contexts/AuthContext';
-import { mockStats } from '../services/mockData';
-import { Card, CardHeader, Avatar, LoadingSpinner, EmptyState, Button, StatCard } from '../components/ui';
+import { Card, CardHeader, Avatar, LoadingSpinner, EmptyState, Button } from '../components/ui';
 
 /**
  * Dashboard Page
@@ -13,9 +12,6 @@ import { Card, CardHeader, Avatar, LoadingSpinner, EmptyState, Button, StatCard 
 const Dashboard = () => {
   const { activities, isLoading, error } = useActivities();
   const { user } = useAuth();
-
-  // TODO: Fetch real stats from backend
-  const stats = mockStats;
 
   if (error) {
     return (
@@ -35,45 +31,7 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Welcome back, {user.name || user.username}!
           </h1>
-          <p className="text-gray-600">Here's your impact summary and recent community activity.</p>
-        </div>
-      )}
-
-      {/* Stats Overview */}
-      {user && (
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Your Impact</h2>
-            <Link to="/profile" className="text-ocean-600 hover:text-ocean-700 text-sm font-medium">
-              View Full Profile →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard
-              title="Total Cleanups"
-              value={stats.totalCleanups}
-              icon={<Trash2 className="h-8 w-8" />}
-              color="ocean"
-            />
-            <StatCard
-              title="Trash Collected"
-              value={stats.totalTrash}
-              icon={<Award className="h-8 w-8" />}
-              color="green"
-            />
-            <StatCard
-              title="Events Organized"
-              value={stats.eventsOrganized}
-              icon={<Calendar className="h-8 w-8" />}
-              color="purple"
-            />
-            <StatCard
-              title="Global Rank"
-              value={stats.rank}
-              icon={<TrendingUp className="h-8 w-8" />}
-              color="orange"
-            />
-          </div>
+          <p className="text-gray-600">Here's the recent community activity.</p>
         </div>
       )}
 
@@ -126,9 +84,9 @@ const Dashboard = () => {
       </Card>
 
       {/* Call to Action */}
-      <div className="mt-8 bg-gradient-to-r from-ocean-500 to-ocean-600 rounded-lg shadow-lg p-8 text-white">
-        <h3 className="text-2xl font-bold mb-4">Join a Cleanup Event Today!</h3>
-        <p className="mb-6">
+      <div className="mt-8 bg-gradient-to-r from-ocean-500 to-ocean-600 rounded-lg shadow-lg p-8 text-white" style={{ backgroundColor: '#0284c7' }}>
+        <h3 className="text-2xl font-bold mb-4 text-white" style={{ color: '#ffffff' }}>Join a Cleanup Event Today!</h3>
+        <p className="mb-6 text-white" style={{ color: '#ffffff' }}>
           Connect with local ocean lovers and make a difference in your community.
         </p>
         <Link to="/events">
@@ -136,6 +94,7 @@ const Dashboard = () => {
             variant="secondary"
             size="lg"
             className="bg-white text-ocean-600 hover:bg-gray-100"
+            style={{ backgroundColor: '#ffffff', color: '#0284c7' }}
           >
             Browse Events
           </Button>

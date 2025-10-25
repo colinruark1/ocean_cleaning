@@ -41,6 +41,7 @@ const Input = forwardRef(({
             w-full px-4 py-2 border rounded-lg transition-all duration-200
             focus:ring-2 focus:ring-ocean-500 focus:border-transparent
             disabled:bg-gray-100 disabled:cursor-not-allowed
+            text-gray-900 placeholder-gray-400 bg-white
             ${leftIcon ? 'pl-10' : ''}
             ${rightIcon ? 'pr-10' : ''}
             ${hasError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'}
@@ -93,6 +94,7 @@ export const Textarea = forwardRef(({
           w-full px-4 py-2 border rounded-lg transition-all duration-200
           focus:ring-2 focus:ring-ocean-500 focus:border-transparent
           disabled:bg-gray-100 disabled:cursor-not-allowed
+          text-gray-900 placeholder-gray-400 bg-white
           ${hasError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'}
         `}
         {...props}
