@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
 import Input, { Textarea } from '../components/ui/Input';
 import Button from '../components/ui/Button';
+import { exportUserRegistration } from '../services/googleSheets';
 
 /**
  * Register/Signup Page
@@ -108,6 +109,14 @@ const Register = () => {
       });
 
       if (result.success) {
+        // Export to Google Sheets
+        try {
+          await exportUserRegistration(result.user);
+        } catch (exportError) {
+          console.error('Failed to export registration to Google Sheets:', exportError);
+          // Don't block registration if export fails
+        }
+
         // Registration successful, redirect to dashboard or profile
         navigate('/profile');
       } else {

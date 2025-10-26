@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Calendar, MapPin, Users, Clock, Plus, Search, Map, List, Bell, BellOff } from 'lucide-react';
 import { useEvents } from '../hooks/useEvents';
 import { useApp } from '../contexts/AppContext';
+import { useAuth } from '../contexts/AuthContext';
 import { formatDate, formatDistance, findNearbyEvents } from '../utils/helpers';
 import { getCurrentPosition } from '../services/geolocation';
 import { notifyNearbyCleanups } from '../services/notifications';
+import { exportEventCreation, exportEventParticipation } from '../services/googleSheets';
 import EventsMap from '../components/EventsMap';
 import {
   Button,
@@ -28,6 +30,7 @@ import PageHeader from '../components/layout/PageHeader';
 const Events = () => {
   const { events, isLoading, error, createEvent, joinEvent } = useEvents();
   const { showSuccess, showError } = useApp();
+  const { user } = useAuth();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -112,6 +115,16 @@ const Events = () => {
     const result = await createEvent(newEvent);
 
     if (result.success) {
+      // Export to Google Sheets
+      try {
+        await exportEventCreation({
+          ...result.event,
+          organizer: user?.username || 'Unknown',
+        });
+      } catch (exportError) {
+        console.error('Failed to export event to Google Sheets:', exportError);
+      }
+
       showSuccess('Event created successfully!');
       setNewEvent({
         title: '',
@@ -132,6 +145,20 @@ const Events = () => {
   const handleJoinEvent = async (eventId) => {
     const result = await joinEvent(eventId);
     if (result.success) {
+      // Export to Google Sheets
+      try {
+        const event = events.find(e => e.id === eventId);
+        await exportEventParticipation({
+          eventId: eventId,
+          eventTitle: event?.title || 'Unknown Event',
+          userId: user?.id || 'unknown',
+          username: user?.username || 'Unknown',
+          action: 'joined',
+        });
+      } catch (exportError) {
+        console.error('Failed to export event participation to Google Sheets:', exportError);
+      }
+
       showSuccess('You have joined the event!');
     } else {
       showError(result.error || 'Failed to join event');

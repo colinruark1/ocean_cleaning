@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Users, MapPin, Trophy, Plus, Search } from 'lucide-react';
 import { useGroups } from '../hooks/useGroups';
 import { useApp } from '../contexts/AppContext';
+import { useAuth } from '../contexts/AuthContext';
 import { GROUP_CATEGORIES, GROUP_GRADIENTS } from '../constants';
+import { exportGroupCreation, exportGroupMembership } from '../services/googleSheets';
 import {
   Button,
   Card,
@@ -25,6 +27,7 @@ import PageHeader from '../components/layout/PageHeader';
 const Groups = () => {
   const { groups, isLoading, error, createGroup, joinGroup } = useGroups();
   const { showSuccess, showError } = useApp();
+  const { user } = useAuth();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,6 +54,13 @@ const Groups = () => {
     const result = await createGroup(newGroup);
 
     if (result.success) {
+      // Export to Google Sheets
+      try {
+        await exportGroupCreation(result.group);
+      } catch (exportError) {
+        console.error('Failed to export group to Google Sheets:', exportError);
+      }
+
       showSuccess('Group created successfully!');
       setNewGroup({
         name: '',
@@ -69,6 +79,20 @@ const Groups = () => {
   const handleJoinGroup = async (groupId) => {
     const result = await joinGroup(groupId);
     if (result.success) {
+      // Export to Google Sheets
+      try {
+        const group = groups.find(g => g.id === groupId);
+        await exportGroupMembership({
+          groupId: groupId,
+          groupName: group?.name || 'Unknown Group',
+          userId: user?.id || 'unknown',
+          username: user?.username || 'Unknown',
+          action: 'joined',
+        });
+      } catch (exportError) {
+        console.error('Failed to export group membership to Google Sheets:', exportError);
+      }
+
       showSuccess('You have joined the group!');
     } else {
       showError(result.error || 'Failed to join group');

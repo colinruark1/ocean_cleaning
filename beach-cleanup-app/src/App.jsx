@@ -29,18 +29,29 @@ function App() {
       <AppProvider>
         <AuthProvider>
           <Router>
-            <div className="min-h-screen bg-gray-50">
-              <Navigation />
-              <Suspense fallback={<LoadingScreen message="Loading page..." />}>
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/events" element={<Events />} />
-                  <Route path="/groups" element={<Groups />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                </Routes>
-              </Suspense>
+            <div
+              className="min-h-screen bg-cover bg-center bg-fixed relative"
+              style={{
+                backgroundImage: "url('https://images.unsplash.com/photo-1505142468610-359e7d316be0?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')"
+              }}
+            >
+              {/* Semi-transparent overlay for better text readability */}
+              <div className="absolute inset-0 bg-white/30 backdrop-blur-[2px]"></div>
+
+              {/* Content wrapper */}
+              <div className="relative z-10">
+                <Navigation />
+                <Suspense fallback={<LoadingScreen message="Loading page..." />}>
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/events" element={<Events />} />
+                    <Route path="/groups" element={<Groups />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                  </Routes>
+                </Suspense>
+              </div>
             </div>
           </Router>
         </AuthProvider>
