@@ -189,8 +189,8 @@ const Dashboard = () => {
                 <Upload className="h-5 w-5" />
                 <span className="hidden sm:inline">Share Post</span>
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Polaroid Post Grid */}
