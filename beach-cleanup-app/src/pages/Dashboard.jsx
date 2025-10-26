@@ -70,51 +70,51 @@ const Dashboard = () => {
     <div className="min-h-screen transition-colors duration-300" style={{backgroundColor: 'var(--color-bg-primary)'}}>
       {/* Hero Section with Ocean Gradient */}
       <div style={{background: isDarkMode ? 'linear-gradient(135deg, #2E8A99 0%, #1A2332 100%)' : 'linear-gradient(135deg, #1C6EA4 0%, #154D71 100%)'}} className="relative overflow-hidden transition-all duration-300">
+        {/* Decorative ocean elements - animated sprites - Full width */}
+        <div className="absolute inset-0 opacity-40 pointer-events-none overflow-hidden w-screen">
+          {/* Whale swimming across top */}
+          <img
+            src={whaleImage}
+            alt="Whale"
+            className="absolute top-10 w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-contain animate-swim-right"
+            style={{ left: '-10%' }}
+          />
+
+          {/* Orca swimming across middle */}
+          <img
+            src={orcaImage}
+            alt="Orca"
+            className="absolute top-1/2 w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 object-contain animate-swim-left"
+            style={{ right: '-10%', transform: 'translateY(-50%) scaleX(-1)' }}
+          />
+
+          {/* Turtle floating in bottom right */}
+          <img
+            src={turtleImage}
+            alt="Turtle"
+            className="absolute bottom-10 right-8 sm:right-16 md:right-24 w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 object-contain animate-float-slow"
+          />
+
+          {/* Animated bubbles - SVG */}
+          <svg className="absolute inset-0 w-full h-full">
+            {/* Bubble group 1 - left side */}
+            <circle cx="15%" cy="80%" r="4" fill="rgba(255, 255, 255, 0.6)" className="animate-bubble-1" />
+            <circle cx="18%" cy="75%" r="6" fill="rgba(255, 255, 255, 0.5)" className="animate-bubble-2" />
+            <circle cx="12%" cy="85%" r="3" fill="rgba(255, 255, 255, 0.7)" className="animate-bubble-3" />
+
+            {/* Bubble group 2 - center */}
+            <circle cx="45%" cy="90%" r="5" fill="rgba(255, 255, 255, 0.6)" className="animate-bubble-2" />
+            <circle cx="50%" cy="85%" r="4" fill="rgba(255, 255, 255, 0.5)" className="animate-bubble-1" />
+            <circle cx="48%" cy="95%" r="3" fill="rgba(255, 255, 255, 0.7)" className="animate-bubble-3" />
+
+            {/* Bubble group 3 - right side */}
+            <circle cx="85%" cy="75%" r="6" fill="rgba(255, 255, 255, 0.5)" className="animate-bubble-1" />
+            <circle cx="88%" cy="80%" r="4" fill="rgba(255, 255, 255, 0.6)" className="animate-bubble-3" />
+            <circle cx="82%" cy="85%" r="5" fill="rgba(255, 255, 255, 0.6)" className="animate-bubble-2" />
+          </svg>
+        </div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 relative">
-          {/* Decorative ocean elements - animated sprites */}
-          <div className="absolute inset-0 opacity-40 pointer-events-none overflow-hidden">
-            {/* Whale swimming across top */}
-            <img
-              src={whaleImage}
-              alt="Whale"
-              className="absolute top-10 w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-contain animate-swim-right"
-              style={{ left: '-10%' }}
-            />
-
-            {/* Orca swimming across middle */}
-            <img
-              src={orcaImage}
-              alt="Orca"
-              className="absolute top-1/2 w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 object-contain animate-swim-left"
-              style={{ right: '-10%', transform: 'translateY(-50%) scaleX(-1)' }}
-            />
-
-            {/* Turtle floating in bottom right */}
-            <img
-              src={turtleImage}
-              alt="Turtle"
-              className="absolute bottom-10 right-8 sm:right-16 md:right-24 w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 object-contain animate-float-slow"
-            />
-
-            {/* Animated bubbles - SVG */}
-            <svg className="absolute inset-0 w-full h-full">
-              {/* Bubble group 1 - left side */}
-              <circle cx="15%" cy="80%" r="4" fill="rgba(255, 255, 255, 0.6)" className="animate-bubble-1" />
-              <circle cx="18%" cy="75%" r="6" fill="rgba(255, 255, 255, 0.5)" className="animate-bubble-2" />
-              <circle cx="12%" cy="85%" r="3" fill="rgba(255, 255, 255, 0.7)" className="animate-bubble-3" />
-
-              {/* Bubble group 2 - center */}
-              <circle cx="45%" cy="90%" r="5" fill="rgba(255, 255, 255, 0.6)" className="animate-bubble-2" />
-              <circle cx="50%" cy="85%" r="4" fill="rgba(255, 255, 255, 0.5)" className="animate-bubble-1" />
-              <circle cx="48%" cy="95%" r="3" fill="rgba(255, 255, 255, 0.7)" className="animate-bubble-3" />
-
-              {/* Bubble group 3 - right side */}
-              <circle cx="85%" cy="75%" r="6" fill="rgba(255, 255, 255, 0.5)" className="animate-bubble-1" />
-              <circle cx="88%" cy="80%" r="4" fill="rgba(255, 255, 255, 0.6)" className="animate-bubble-3" />
-              <circle cx="82%" cy="85%" r="5" fill="rgba(255, 255, 255, 0.6)" className="animate-bubble-2" />
-            </svg>
-          </div>
-
           <div className="relative z-10">
             <div className="text-center mb-12">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 tracking-tight" style={{color: '#ffffff'}}>
@@ -209,7 +209,7 @@ const Dashboard = () => {
               variant="secondary"
               size="lg"
               className="font-semibold hover:opacity-90 transition-opacity"
-              style={{backgroundColor: '#ffffff', color: isDarkMode ? '#FFFFFF' : '#154D71'}}
+              style={{backgroundColor: '#ffffff', color: isDarkMode ? '#1A2332' : '#154D71'}}
             >
               Browse Events
             </Button>
