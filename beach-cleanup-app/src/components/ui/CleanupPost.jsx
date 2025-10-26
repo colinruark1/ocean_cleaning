@@ -1,25 +1,45 @@
 import { useState } from 'react';
 import { Trash2, MapPin, Calendar, Image as ImageIcon } from 'lucide-react';
 import Avatar from './Avatar';
+import { updateUpvotes } from '../../services/googleSheets';
 
 /**
  * CleanupPost Component
  * Polaroid-style post for beach cleaning adventures
  * Features sandy-colored film border, image, caption, and trash can upvote
+ * Upvotes are synced with Google Sheets database
  */
 const CleanupPost = ({ post }) => {
   const [upvotes, setUpvotes] = useState(post.upvotes || 0);
   const [isUpvoted, setIsUpvoted] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const [isUpdatingUpvote, setIsUpdatingUpvote] = useState(false);
 
-  const handleUpvote = () => {
-    if (isUpvoted) {
-      setUpvotes(upvotes - 1);
-      setIsUpvoted(false);
-    } else {
-      setUpvotes(upvotes + 1);
-      setIsUpvoted(true);
+  const handleUpvote = async () => {
+    // Prevent double clicks
+    if (isUpdatingUpvote) return;
+
+    setIsUpdatingUpvote(true);
+
+    try {
+      const newUpvoteCount = isUpvoted ? upvotes - 1 : upvotes + 1;
+
+      // Optimistically update UI
+      setUpvotes(newUpvoteCount);
+      setIsUpvoted(!isUpvoted);
+
+      // Update in Google Sheets database
+      console.log(`🗳️ Updating upvotes for post ${post.id} to ${newUpvoteCount}`);
+      await updateUpvotes(post.id, newUpvoteCount);
+      console.log('✅ Upvote synced to database');
+    } catch (error) {
+      console.error('❌ Failed to sync upvote to database:', error);
+      // Revert on error
+      setUpvotes(isUpvoted ? upvotes + 1 : upvotes - 1);
+      setIsUpvoted(isUpvoted);
+    } finally {
+      setIsUpdatingUpvote(false);
     }
   };
 
@@ -100,15 +120,16 @@ const CleanupPost = ({ post }) => {
         <div className="flex items-center justify-center gap-2 pt-3 pb-1">
           <button
             onClick={handleUpvote}
+            disabled={isUpdatingUpvote}
             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
               isUpvoted
                 ? 'bg-blue-500 text-white shadow-md'
                 : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-            }`}
+            } ${isUpdatingUpvote ? 'opacity-50 cursor-wait' : 'cursor-pointer'}`}
             aria-label={isUpvoted ? 'Remove upvote' : 'Upvote post'}
           >
             <Trash2
-              className={`h-5 w-5 transition-transform ${isUpvoted ? 'scale-110' : ''}`}
+              className={`h-5 w-5 transition-transform ${isUpvoted ? 'scale-110' : ''} ${isUpdatingUpvote ? 'animate-pulse' : ''}`}
               fill={isUpvoted ? 'currentColor' : 'none'}
             />
             <span className="font-semibold text-sm">{upvotes}</span>

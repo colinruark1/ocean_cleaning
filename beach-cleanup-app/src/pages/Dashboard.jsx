@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Upload } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { mockCleanupPosts } from '../services/mockData';
-import { fetchPosts, addPost, fetchPostsLocalStorage } from '../services/googleSheets';
+import { fetchPosts, addPost } from '../services/googleSheets';
 import { Button, CleanupPost, UploadPostModal } from '../components/ui';
+import { testGoogleSheetsConnection } from '../utils/testGoogleSheets';
 
 // Import ocean sprite images
 import orcaImage from '../assets/orca.png';
@@ -33,34 +33,29 @@ const Dashboard = () => {
 
   // Fetch posts on component mount
   useEffect(() => {
+    // Run connection test in development
+    if (import.meta.env.DEV) {
+      testGoogleSheetsConnection();
+    }
     loadPosts();
   }, []);
 
   const loadPosts = async () => {
     setIsLoading(true);
     try {
-      // Try to fetch from Google Sheets
+      console.log('🔄 Loading posts from Google Sheets database...');
+
+      // Fetch from Google Sheets only - no fallbacks
       const sheetPosts = await fetchPosts();
 
-      // If Google Sheets returns posts, use them
-      if (sheetPosts && sheetPosts.length > 0) {
-        setPosts(sheetPosts);
-      } else {
-        // Otherwise, check local storage
-        const localPosts = fetchPostsLocalStorage();
+      console.log('📊 Loaded posts from database:', sheetPosts?.length || 0);
 
-        // If local storage has posts, use them
-        if (localPosts && localPosts.length > 0) {
-          setPosts(localPosts);
-        } else {
-          // Fall back to mock data
-          setPosts(mockCleanupPosts);
-        }
-      }
+      // Set posts from Google Sheets (or empty array if none)
+      setPosts(sheetPosts || []);
     } catch (error) {
-      console.error('Error loading posts:', error);
-      // Fall back to mock data on error
-      setPosts(mockCleanupPosts);
+      console.error('❌ Error loading posts from database:', error);
+      // Set empty array on error - posts must come from database only
+      setPosts([]);
     } finally {
       setIsLoading(false);
     }
