@@ -10,6 +10,7 @@ import Button from './ui/Button';
  */
 const ProfileEditModal = ({ isOpen, onClose, user, onSave }) => {
   const [formData, setFormData] = useState({
+    name: user?.name || '',
     username: user?.username || '',
     location: user?.location || '',
     bio: user?.bio || '',
@@ -30,6 +31,14 @@ const ProfileEditModal = ({ isOpen, onClose, user, onSave }) => {
 
   const validate = () => {
     const newErrors = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Display name is required';
+    } else if (formData.name.length < 2) {
+      newErrors.name = 'Display name must be at least 2 characters';
+    } else if (formData.name.length > 50) {
+      newErrors.name = 'Display name must be less than 50 characters';
+    }
 
     if (!formData.username.trim()) {
       newErrors.username = 'Username is required';
@@ -71,6 +80,7 @@ const ProfileEditModal = ({ isOpen, onClose, user, onSave }) => {
 
   const handleClose = () => {
     setFormData({
+      name: user?.name || '',
       username: user?.username || '',
       location: user?.location || '',
       bio: user?.bio || '',
@@ -84,6 +94,18 @@ const ProfileEditModal = ({ isOpen, onClose, user, onSave }) => {
       <form onSubmit={handleSubmit}>
         <ModalBody>
           <div className="space-y-4">
+
+            <Input
+              label="Display Name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              error={errors.name}
+              leftIcon={<User className="h-5 w-5" />}
+              placeholder="Enter your display name"
+              helperText="This is the name shown on your profile and posts"
+              required
+            />
 
             <Input
               label="Username"

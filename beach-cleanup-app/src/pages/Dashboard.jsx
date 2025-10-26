@@ -158,15 +158,15 @@ const Dashboard = () => {
       {/* Main Content - Instagram-style Post Feed */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-center flex-1">
+          <div className="relative mb-4">
+            <div className="text-center">
               <h2 className="text-3xl font-bold text-gray-800 mb-2">Community Cleanup Adventures</h2>
               <p className="text-gray-600">Share your beach cleaning journey and inspire others!</p>
             </div>
             {user && (
               <Button
                 onClick={() => setIsUploadModalOpen(true)}
-                className="ml-4 flex items-center gap-2"
+                className="absolute right-0 top-0 flex items-center gap-2"
                 style={{backgroundColor: colors.buttonBg, color: 'white'}}
               >
                 <Upload className="h-5 w-5" />
