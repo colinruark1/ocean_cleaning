@@ -29,6 +29,14 @@ export const AuthProvider = ({ children }) => {
             console.log('Migrated avatar field to profilePictureUrl');
           }
 
+          // Migrate old 'name' field to 'displayName'
+          if (parsedUser.name !== undefined && parsedUser.displayName === undefined) {
+            parsedUser.displayName = parsedUser.name;
+            delete parsedUser.name;
+            localStorage.setItem('user', JSON.stringify(parsedUser));
+            console.log('Migrated name field to displayName');
+          }
+
           setUser(parsedUser);
           setIsAuthenticated(true);
         }
@@ -53,7 +61,7 @@ export const AuthProvider = ({ children }) => {
       const mockUser = {
         id: '1',
         username: 'alexrivera',
-        name: 'Alex Rivera',
+        displayName: 'Alex Rivera',
         email: credentials.email,
         location: 'Santa Monica, CA',
         joined: 'January 2024',
@@ -105,7 +113,7 @@ export const AuthProvider = ({ children }) => {
       const newUser = {
         id: Date.now().toString(),
         username: userData.username,
-        name: userData.username, // Use username as display name for now
+        displayName: userData.username, // Use username as display name initially
         email: userData.email,
         bio: userData.bio || '',
         location: userData.location || '',

@@ -30,13 +30,17 @@ class UserBase(BaseModel):
     id: str
     username: str
     email: str
+    displayName: Optional[str] = None
     bio: Optional[str] = None
+    location: Optional[str] = None
     profilePictureUrl: Optional[str] = None
     createdAt: str
 
 class UserUpdate(BaseModel):
     username: Optional[str] = None
+    displayName: Optional[str] = None
     bio: Optional[str] = None
+    location: Optional[str] = None
     profilePictureUrl: Optional[str] = None
 
 # ============================================================================

@@ -30,6 +30,7 @@ async def init_database():
                 username TEXT UNIQUE NOT NULL,
                 email TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL,
+                displayName TEXT,
                 bio TEXT,
                 location TEXT,
                 profilePictureUrl TEXT,

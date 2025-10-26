@@ -10,6 +10,7 @@ import Button from './ui/Button';
  */
 const ProfileEditModal = ({ isOpen, onClose, user, onSave }) => {
   const [formData, setFormData] = useState({
+    displayName: user?.displayName || '',
     username: user?.username || '',
     location: user?.location || '',
     bio: user?.bio || '',
@@ -30,6 +31,14 @@ const ProfileEditModal = ({ isOpen, onClose, user, onSave }) => {
 
   const validate = () => {
     const newErrors = {};
+
+    if (!formData.displayName.trim()) {
+      newErrors.displayName = 'Display name is required';
+    } else if (formData.displayName.length < 2) {
+      newErrors.displayName = 'Display name must be at least 2 characters';
+    } else if (formData.displayName.length > 50) {
+      newErrors.displayName = 'Display name must be less than 50 characters';
+    }
 
     if (!formData.username.trim()) {
       newErrors.username = 'Username is required';
@@ -71,6 +80,7 @@ const ProfileEditModal = ({ isOpen, onClose, user, onSave }) => {
 
   const handleClose = () => {
     setFormData({
+      displayName: user?.displayName || '',
       username: user?.username || '',
       location: user?.location || '',
       bio: user?.bio || '',
@@ -86,6 +96,18 @@ const ProfileEditModal = ({ isOpen, onClose, user, onSave }) => {
           <div className="space-y-4">
 
             <Input
+              label="Display Name"
+              name="displayName"
+              value={formData.displayName}
+              onChange={handleChange}
+              error={errors.displayName}
+              leftIcon={<User className="h-5 w-5" />}
+              placeholder="Enter your display name"
+              helperText="This is how your name appears on your profile and posts"
+              required
+            />
+
+            <Input
               label="Username"
               name="username"
               value={formData.username}
@@ -93,7 +115,9 @@ const ProfileEditModal = ({ isOpen, onClose, user, onSave }) => {
               error={errors.username}
               leftIcon={<User className="h-5 w-5" />}
               placeholder="Enter your username"
+              helperText="Your unique identifier (cannot be changed after creation)"
               required
+              disabled
             />
 
             <Input

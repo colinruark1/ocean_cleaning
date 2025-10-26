@@ -61,9 +61,9 @@ const CleanupPost = ({ post }) => {
       <div className="bg-gradient-to-b from-amber-50 to-amber-100 rounded-lg shadow-xl p-3 hover:shadow-2xl transition-shadow duration-300">
         {/* User info header */}
         <div className="flex items-center gap-3 mb-3 px-1">
-          <Avatar name={post.username} size="sm" />
+          <Avatar name={post.displayName || post.username} size="sm" />
           <div className="flex-1">
-            <p className="font-semibold text-gray-800 text-sm">{post.username}</p>
+            <p className="font-semibold text-gray-800 text-sm">{post.displayName || post.username}</p>
             {post.location && (
               <p className="text-xs text-gray-600 flex items-center gap-1">
                 <MapPin className="h-3 w-3" />
