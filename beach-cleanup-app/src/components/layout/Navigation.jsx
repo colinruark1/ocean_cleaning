@@ -23,28 +23,27 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 shadow-sm transition-colors" style={{backgroundColor: isDarkMode ? '#183B4E' : '#33A1E0', borderBottom: '1px solid #27548A'}}>
+    <nav className="sticky top-0 z-50 shadow-lg transition-colors duration-300" style={{
+      backgroundColor: isDarkMode ? 'var(--color-bg-secondary)' : 'var(--color-secondary)',
+      borderBottom: `1px solid var(--color-border)`
+    }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo and primary nav */}
           <div className="flex">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <Waves className="h-8 w-8" style={{color: '#DDA853'}} />
-              <span className="ml-2 text-2xl font-bold" style={{color: '#F3F3E0'}}>OceanClean</span>
+              <Waves className="h-8 w-8" style={{color: isDarkMode ? 'var(--color-accent)' : '#DDA853'}} />
+              <span className="ml-2 text-2xl font-bold" style={{color: isDarkMode ? 'var(--color-text-primary)' : '#FFFFFF'}}>OceanClean</span>
             </Link>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {navLinks.map(({ path, label, icon: Icon }) => (
                 <Link
                   key={path}
                   to={path}
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
-                    isActive(path)
-                      ? 'text-white'
-                      : 'border-transparent hover:border-gray-600'
-                  }`}
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200 hover:opacity-75`}
                   style={{
-                    borderBottomColor: isActive(path) ? '#DDA853' : 'transparent',
-                    color: isActive(path) ? '#F3F3E0' : '#9CA3AF'
+                    borderBottomColor: isActive(path) ? (isDarkMode ? 'var(--color-accent)' : '#DDA853') : 'transparent',
+                    color: isActive(path) ? (isDarkMode ? 'var(--color-accent)' : 'white') : (isDarkMode ? '#FFFFFF' : 'rgba(255,255,255,0.7)')
                   }}
                 >
                   <Icon className="h-4 w-4 mr-1" />
@@ -59,9 +58,14 @@ const Navigation = () => {
             {/* Dark mode toggle button */}
             <button
               onClick={toggleTheme}
-              className="inline-flex items-center p-2 border text-sm font-medium rounded-full transition-all hover:opacity-80"
-              style={{borderColor: '#27548A', color: '#F3F3E0'}}
+              className="inline-flex items-center p-2 border text-sm font-medium rounded-full transition-all duration-200 hover:opacity-80 hover:scale-110"
+              style={{
+                borderColor: isDarkMode ? '#FFFFFF' : '#DDA853',
+                color: isDarkMode ? '#FFFFFF' : '#FFFFFF',
+                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(221, 168, 83, 0.1)'
+              }}
               aria-label="Toggle dark mode"
+              title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {isDarkMode ? (
                 <Sun className="h-5 w-5" />
@@ -73,8 +77,11 @@ const Navigation = () => {
             {isAuthenticated ? (
               <Link
                 to="/profile"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full transition-all hover:opacity-90"
-                style={{backgroundColor: '#DDA853', color: '#183B4E'}}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full transition-all duration-200 hover:opacity-90 hover:scale-105"
+                style={{
+                  backgroundColor: isDarkMode ? 'var(--color-accent)' : '#DDA853',
+                  color: isDarkMode ? '#0F1419' : '#183B4E'
+                }}
               >
                 <User className="h-4 w-4 mr-1" />
                 Profile
@@ -83,16 +90,22 @@ const Navigation = () => {
               <>
                 <Link
                   to="/login"
-                  className="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-full transition-all hover:opacity-80"
-                  style={{borderColor: '#DDA853', color: '#F3F3E0'}}
+                  className="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-full transition-all duration-200 hover:opacity-80"
+                  style={{
+                    borderColor: isDarkMode ? '#FFFFFF' : '#DDA853',
+                    color: isDarkMode ? '#FFFFFF' : 'white'
+                  }}
                 >
                   <LogIn className="h-4 w-4 mr-1" />
                   Log In
                 </Link>
                 <Link
                   to="/register"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full transition-all hover:opacity-90"
-                  style={{backgroundColor: '#DDA853', color: '#183B4E'}}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full transition-all duration-200 hover:opacity-90 hover:scale-105"
+                  style={{
+                    backgroundColor: isDarkMode ? '#FFFFFF' : '#DDA853',
+                    color: isDarkMode ? '#FFFFFF' : '#183B4E'
+                  }}
                 >
                   <UserPlus className="h-4 w-4 mr-1" />
                   Sign Up
@@ -104,14 +117,14 @@ const Navigation = () => {
       </div>
 
       {/* Mobile navigation */}
-      <div className="sm:hidden" style={{borderTop: '1px solid #27548A'}}>
-        <div className="flex justify-around py-2">
+      <div className="sm:hidden" style={{borderTop: `1px solid var(--color-border)`}}>
+        <div className="flex justify-around py-2" style={{backgroundColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)'}}>
           {navLinks.map(({ path, label, icon: Icon }) => (
             <Link
               key={path}
               to={path}
-              className="flex flex-col items-center px-3 py-2 text-xs font-medium transition-colors"
-              style={{color: isActive(path) ? '#DDA853' : '#9CA3AF'}}
+              className="flex flex-col items-center px-3 py-2 text-xs font-medium transition-colors duration-200 hover:opacity-75"
+              style={{color: isActive(path) ? (isDarkMode ? 'var(--color-accent)' : '#DDA853') : (isDarkMode ? 'var(--color-text-secondary)' : 'rgba(255,255,255,0.7)')}}
             >
               <Icon className="h-5 w-5 mb-1" />
               {label}
@@ -120,8 +133,8 @@ const Navigation = () => {
           {isAuthenticated ? (
             <Link
               to="/profile"
-              className="flex flex-col items-center px-3 py-2 text-xs font-medium transition-colors"
-              style={{color: isActive('/profile') ? '#DDA853' : '#9CA3AF'}}
+              className="flex flex-col items-center px-3 py-2 text-xs font-medium transition-colors duration-200 hover:opacity-75"
+              style={{color: isActive('/profile') ? (isDarkMode ? 'var(--color-accent)' : '#DDA853') : (isDarkMode ? 'var(--color-text-secondary)' : 'rgba(255,255,255,0.7)')}}
             >
               <User className="h-5 w-5 mb-1" />
               Profile
@@ -130,16 +143,16 @@ const Navigation = () => {
             <>
               <Link
                 to="/login"
-                className="flex flex-col items-center px-3 py-2 text-xs font-medium transition-colors"
-                style={{color: isActive('/login') ? '#DDA853' : '#9CA3AF'}}
+                className="flex flex-col items-center px-3 py-2 text-xs font-medium transition-colors duration-200 hover:opacity-75"
+                style={{color: isActive('/login') ? (isDarkMode ? 'var(--color-accent)' : '#DDA853') : (isDarkMode ? 'var(--color-text-secondary)' : 'rgba(255,255,255,0.7)')}}
               >
                 <LogIn className="h-5 w-5 mb-1" />
                 Log In
               </Link>
               <Link
                 to="/register"
-                className="flex flex-col items-center px-3 py-2 text-xs font-medium transition-colors"
-                style={{color: isActive('/register') ? '#DDA853' : '#9CA3AF'}}
+                className="flex flex-col items-center px-3 py-2 text-xs font-medium transition-colors duration-200 hover:opacity-75"
+                style={{color: isActive('/register') ? (isDarkMode ? 'var(--color-accent)' : '#DDA853') : (isDarkMode ? 'var(--color-text-secondary)' : 'rgba(255,255,255,0.7)')}}
               >
                 <UserPlus className="h-5 w-5 mb-1" />
                 Sign Up

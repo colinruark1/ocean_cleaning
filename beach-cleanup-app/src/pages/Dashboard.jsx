@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Upload } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { fetchPosts, addPost } from '../services/googleSheets';
 import { Button, CleanupPost, UploadPostModal } from '../components/ui';
 import { testGoogleSheetsConnection } from '../utils/testGoogleSheets';
@@ -18,18 +19,10 @@ import whaleImage from '../assets/whale.png';
  */
 const Dashboard = () => {
   const { user } = useAuth();
+  const { isDarkMode } = useTheme();
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-
-  // Light mode colors for now
-  const colors = {
-    heroBg: 'linear-gradient(135deg, #1C6EA4 0%, #154D71 100%)',
-    heroText: '#FFF9AF',
-    bgPrimary: '#F5F5F5',
-    buttonBg: '#33A1E0',
-    buttonText: '#154D71',
-  };
 
   // Fetch posts on component mount
   useEffect(() => {
@@ -74,9 +67,9 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{backgroundColor: colors.bgPrimary}}>
+    <div className="min-h-screen transition-colors duration-300" style={{backgroundColor: 'var(--color-bg-primary)'}}>
       {/* Hero Section with Ocean Gradient */}
-      <div style={{background: colors.heroBg}} className="relative overflow-hidden">
+      <div style={{background: isDarkMode ? 'linear-gradient(135deg, #2E8A99 0%, #1A2332 100%)' : 'linear-gradient(135deg, #1C6EA4 0%, #154D71 100%)'}} className="relative overflow-hidden transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 relative">
           {/* Decorative ocean elements - animated sprites */}
           <div className="absolute inset-0 opacity-40 pointer-events-none overflow-hidden">
@@ -122,24 +115,26 @@ const Dashboard = () => {
             </svg>
           </div>
 
-          <div className="text-center relative z-10">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 tracking-tight" style={{color: '#ffffff'}}>
-              {user ? `Welcome back, ${user.name || user.username}!` : 'Welcome to OceanClean'}
-            </h1>
-            <p className="text-xl sm:text-2xl max-w-3xl mx-auto leading-relaxed" style={{color: colors.heroText}}>
-              {user
-                ? "Check out the latest beach cleaning adventures from our community!"
-                : "Join ocean lovers around the world making a difference, one cleanup at a time."}
-            </p>
+          <div className="relative z-10">
+            <div className="text-center mb-12">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 tracking-tight" style={{color: '#ffffff'}}>
+                {user ? `Welcome back, ${user.name || user.username}!` : 'Welcome to OceanClean'}
+              </h1>
+              <p className="text-xl sm:text-2xl max-w-3xl mx-auto leading-relaxed" style={{color: isDarkMode ? '#FFFFFF' : '#FFF9AF'}}>
+                {user
+                  ? "Check out the latest beach cleaning adventures from our community!"
+                  : "Join ocean lovers around the world making a difference, one cleanup at a time."}
+              </p>
+            </div>
             {!user && (
-              <div className="mt-8 flex gap-4 justify-center flex-wrap">
-                <Link to="/register">
-                  <Button size="lg" className="font-semibold px-8" style={{backgroundColor: colors.buttonBg, color: colors.buttonText}}>
+              <div className="flex gap-4 justify-between items-center px-4">
+                <Link to="/register" className="flex-1">
+                  <Button size="lg" className="font-semibold px-8 w-full" style={{backgroundColor: isDarkMode ? '#4A9FB5' : '#33A1E0', color: isDarkMode ? '#FFFFFF' : '#154D71'}}>
                     Get Started
                   </Button>
                 </Link>
-                <Link to="/events">
-                  <Button size="lg" variant="secondary" className="font-semibold px-8 border-2" style={{borderColor: colors.heroText, color: colors.heroText, backgroundColor: 'transparent'}}>
+                <Link to="/events" className="flex-1">
+                  <Button size="lg" variant="secondary" className="font-semibold px-8 w-full border-2" style={{borderColor: isDarkMode ? '#FFFFFF' : '#FFF9AF', color: isDarkMode ? '#FFFFFF' : '#FFF9AF', backgroundColor: 'transparent'}}>
                     Browse Events
                   </Button>
                 </Link>
@@ -147,10 +142,10 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-        {/* Wave decoration */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 120" className="w-full h-12 sm:h-16">
-            <path fill={colors.bgPrimary} fillOpacity="1" d="M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,48C672,43,768,53,864,58.7C960,64,1056,64,1152,58.7C1248,53,1344,43,1392,37.3L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path>
+        {/* Wave decoration - extends to edges */}
+        <div className="absolute bottom-0 left-0 right-0 w-screen">
+          <svg viewBox="0 0 1440 120" preserveAspectRatio="none" className="w-full h-12 sm:h-16">
+            <path fill={isDarkMode ? '#0F1419' : '#FFF9AF'} fillOpacity="1" d="M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,48C672,43,768,53,864,58.7C960,64,1056,64,1152,58.7C1248,53,1344,43,1392,37.3L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path>
           </svg>
         </div>
       </div>
@@ -160,14 +155,14 @@ const Dashboard = () => {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <div className="text-center flex-1">
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">Community Cleanup Adventures</h2>
-              <p className="text-gray-600">Share your beach cleaning journey and inspire others!</p>
+              <h2 className="text-3xl font-bold mb-2" style={{color: 'var(--color-text-primary)'}}>Community Cleanup Adventures</h2>
+              <p style={{color: 'var(--color-text-secondary)'}}>Share your beach cleaning journey and inspire others!</p>
             </div>
             {user && (
               <Button
                 onClick={() => setIsUploadModalOpen(true)}
                 className="ml-4 flex items-center gap-2"
-                style={{backgroundColor: colors.buttonBg, color: 'white'}}
+                style={{backgroundColor: isDarkMode ? '#4A9FB5' : '#33A1E0', color: isDarkMode ? '#0F1419' : 'white'}}
               >
                 <Upload className="h-5 w-5" />
                 <span className="hidden sm:inline">Share Post</span>
@@ -180,15 +175,15 @@ const Dashboard = () => {
         {isLoading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-            <p className="text-gray-600 mt-4">Loading posts...</p>
+            <p style={{color: 'var(--color-text-secondary)'}} className="mt-4">Loading posts...</p>
           </div>
         ) : posts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-600 text-lg mb-4">No posts yet. Be the first to share your cleanup adventure!</p>
+            <p style={{color: 'var(--color-text-secondary)'}} className="text-lg mb-4">No posts yet. Be the first to share your cleanup adventure!</p>
             {user && (
               <Button
                 onClick={() => setIsUploadModalOpen(true)}
-                style={{backgroundColor: colors.buttonBg, color: 'white'}}
+                style={{backgroundColor: isDarkMode ? '#4A9FB5' : '#33A1E0', color: isDarkMode ? '#0F1419' : 'white'}}
               >
                 <Upload className="h-5 w-5 inline mr-2" />
                 Share Your First Post
@@ -204,9 +199,9 @@ const Dashboard = () => {
         )}
 
         {/* Call to Action */}
-        <div className="mt-12 rounded-2xl shadow-lg p-8 text-white text-center" style={{background: colors.heroBg}}>
+        <div className="mt-12 rounded-2xl shadow-lg p-8 text-white text-center transition-all duration-300" style={{background: isDarkMode ? 'linear-gradient(135deg, #2E8A99 0%, #1A2332 100%)' : 'linear-gradient(135deg, #1C6EA4 0%, #154D71 100%)'}}>
           <h3 className="text-2xl sm:text-3xl font-bold mb-4">Share Your Cleanup Adventure!</h3>
-          <p className="text-lg mb-6" style={{color: colors.heroText}}>
+          <p className="text-lg mb-6" style={{color: isDarkMode ? '#FFFFFF' : '#FFF9AF'}}>
             Join a cleanup event and share your impact with the community.
           </p>
           <Link to="/events">
@@ -214,7 +209,7 @@ const Dashboard = () => {
               variant="secondary"
               size="lg"
               className="font-semibold hover:opacity-90 transition-opacity"
-              style={{backgroundColor: '#ffffff', color: colors.buttonText}}
+              style={{backgroundColor: '#ffffff', color: isDarkMode ? '#FFFFFF' : '#154D71'}}
             >
               Browse Events
             </Button>
