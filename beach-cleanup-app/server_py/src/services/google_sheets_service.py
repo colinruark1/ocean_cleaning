@@ -4,6 +4,7 @@ Handles direct interaction with Google Sheets API using service account credenti
 Falls back to Google Apps Script if API is not available
 """
 import os
+import json
 import httpx
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -11,12 +12,17 @@ from googleapiclient.errors import HttpError
 from typing import List, Dict, Any, Optional
 
 class GoogleSheetsService:
-    def __init__(self):
-        """Initialize Google Sheets service with credentials from environment"""
+    def __init__(self, project_id: Optional[str] = None):
+        """Initialize Google Sheets service with credentials from environment
+
+        Args:
+            project_id: Optional project ID to use. If not provided, uses default from config.
+        """
         self.spreadsheet_id = os.getenv("VITE_GOOGLE_SHEETS_SPREADSHEET_ID")
         self.sheet_name = os.getenv("VITE_GOOGLE_SHEETS_SHEET_NAME", "Posts")
         self.events_sheet_name = os.getenv("VITE_GOOGLE_SHEETS_EVENTS_SHEET_NAME", "Events")
         self.apps_script_url = os.getenv("VITE_GOOGLE_APPS_SCRIPT_URL")
+        self.project_id = project_id or os.getenv("GOOGLE_PROJECT_ID")
         self.service = None
         self._initialize_service()
 
@@ -34,10 +40,38 @@ class GoogleSheetsService:
 
             if os.path.exists(service_account_file):
                 print(f"[INFO] Loading service account from: {service_account_file}")
-                credentials = service_account.Credentials.from_service_account_file(
-                    service_account_file,
-                    scopes=['https://www.googleapis.com/auth/spreadsheets']
-                )
+
+                # Read the JSON file
+                with open(service_account_file, 'r') as f:
+                    config = json.load(f)
+
+                # Check if this is a multi-account configuration
+                if "service_accounts" in config:
+                    # Multi-account structure
+                    project_id = self.project_id or config.get("default_project")
+
+                    if not project_id:
+                        raise Exception("No project_id specified and no default_project in config")
+
+                    if project_id not in config["service_accounts"]:
+                        raise Exception(f"Project ID '{project_id}' not found in service accounts")
+
+                    # Get the specific service account for this project
+                    credentials_info = config["service_accounts"][project_id]
+                    print(f"[INFO] Using service account for project: {project_id}")
+
+                    credentials = service_account.Credentials.from_service_account_info(
+                        credentials_info,
+                        scopes=['https://www.googleapis.com/auth/spreadsheets']
+                    )
+                else:
+                    # Legacy single-account structure
+                    credentials = service_account.Credentials.from_service_account_info(
+                        config,
+                        scopes=['https://www.googleapis.com/auth/spreadsheets']
+                    )
+                    print(f"[INFO] Using legacy single service account")
+
                 self.service = build('sheets', 'v4', credentials=credentials)
                 print("[SUCCESS] Google Sheets service initialized successfully (from JSON file)")
                 return
