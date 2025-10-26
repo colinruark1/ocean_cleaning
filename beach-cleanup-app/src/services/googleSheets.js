@@ -92,7 +92,7 @@ export const fetchPosts = async () => {
 
 /**
  * Add a new post to Google Sheets
- * Note: This requires Apps Script Web App or OAuth 2.0
+ * Routes through Python backend to avoid CORS issues
  */
 export const addPost = async (postData) => {
   try {
@@ -111,37 +111,30 @@ export const addPost = async (postData) => {
       timestamp: postData.timestamp || new Date().toISOString(),
     };
 
-    // We'll use Google Apps Script Web App as a proxy for writing data
-    // This avoids CORS issues and simplifies authentication
-    const APPS_SCRIPT_URL = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL;
-
-    console.log('📝 Attempting to add post to Google Sheets...');
-    console.log('Apps Script URL:', APPS_SCRIPT_URL);
+    console.log('📝 Attempting to add post to Google Sheets via backend...');
     console.log('Post data:', newPost);
 
-    if (!APPS_SCRIPT_URL) {
-      console.warn('⚠️ Google Apps Script URL not configured. Using local storage fallback.');
-      return addPostLocalStorage(newPost);
-    }
-
-    console.log('🚀 Sending POST request to Apps Script...');
-    const response = await fetch(APPS_SCRIPT_URL, {
+    // Use backend API endpoint (proxied through Vite)
+    const response = await fetch('/api/posts/add', {
       method: 'POST',
-      mode: 'no-cors', // Important for Apps Script
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        action: 'addPost',
-        data: newPost,
-      }),
+      body: JSON.stringify(newPost),
     });
 
-    console.log('✅ Response received from Apps Script');
-    console.log('Response status:', response.status);
+    console.log('📥 Response status:', response.status);
 
-    // Note: with no-cors mode, we can't read the response
-    // So we'll assume success and add to localStorage as backup
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+      console.error('❌ Backend API Error:', errorData);
+      throw new Error(errorData.detail || 'Failed to add post');
+    }
+
+    const result = await response.json();
+    console.log('✅ Backend response:', result);
+
+    // Also save to localStorage as backup
     addPostLocalStorage(newPost);
 
     console.log('✅ Post added successfully! Check your Google Sheet.');
@@ -157,32 +150,33 @@ export const addPost = async (postData) => {
 
 /**
  * Update upvotes for a post
+ * Routes through Python backend to avoid CORS issues
  */
 export const updateUpvotes = async (postId, newUpvoteCount) => {
   try {
-    const APPS_SCRIPT_URL = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL;
-
-    if (!APPS_SCRIPT_URL) {
-      return updateUpvotesLocalStorage(postId, newUpvoteCount);
-    }
-
-    const response = await fetch(APPS_SCRIPT_URL, {
+    // Use backend API endpoint (proxied through Vite)
+    const response = await fetch('/api/posts/upvote', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        action: 'updateUpvotes',
         postId,
         upvotes: newUpvoteCount,
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to update upvotes: ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+      throw new Error(errorData.detail || 'Failed to update upvotes');
     }
 
-    return await response.json();
+    const result = await response.json();
+
+    // Also update localStorage
+    updateUpvotesLocalStorage(postId, newUpvoteCount);
+
+    return result;
   } catch (error) {
     console.error('Error updating upvotes:', error);
     return updateUpvotesLocalStorage(postId, newUpvoteCount);
