@@ -1,4 +1,4 @@
-import { MapPin, Trash2, Users, Award, Calendar, TrendingUp } from 'lucide-react';
+import { MapPin, Trash2, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useActivities } from '../hooks/useActivities';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,9 +18,6 @@ import whaleImage from '../assets/whale.png';
 const Dashboard = () => {
   const { activities, isLoading, error } = useActivities();
   const { user } = useAuth();
-
-  // TODO: Fetch real stats from backend
-  const stats = mockStats;
 
   if (error) {
     return (
