@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { X, Upload, Image as ImageIcon } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Upload } from 'lucide-react';
 import Modal, { ModalBody, ModalFooter } from './Modal';
 import Button from './Button';
 import Input, { Textarea } from './Input';
+import { uploadImage, validateImage, fileToDataURL } from '../../services/imageUpload';
 
 /**
  * UploadPostModal Component
@@ -15,9 +16,12 @@ const UploadPostModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
     location: '',
     trashCollected: '',
   });
+  const [selectedFile, setSelectedFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [errors, setErrors] = useState({});
+  const fileInputRef = useRef(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -33,20 +37,61 @@ const UploadPostModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
         [name]: ''
       }));
     }
+  };
 
-    // Update image preview when URL changes
-    if (name === 'imageUrl') {
-      setImagePreview(value);
+  const handleFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate the file
+    const validation = validateImage(file);
+    if (!validation.valid) {
+      setErrors(prev => ({
+        ...prev,
+        image: validation.error
+      }));
+      return;
+    }
+
+    // Clear any previous errors
+    setErrors(prev => ({
+      ...prev,
+      image: ''
+    }));
+
+    // Store the file
+    setSelectedFile(file);
+
+    // Generate preview
+    try {
+      const dataUrl = await fileToDataURL(file);
+      setImagePreview(dataUrl);
+    } catch (error) {
+      console.error('Error generating preview:', error);
+      setErrors(prev => ({
+        ...prev,
+        image: 'Failed to generate image preview'
+      }));
+    }
+  };
+
+  const handleUploadButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedFile(null);
+    setImagePreview('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.imageUrl.trim()) {
-      newErrors.imageUrl = 'Image URL is required';
-    } else if (!isValidUrl(formData.imageUrl)) {
-      newErrors.imageUrl = 'Please enter a valid URL';
+    if (!selectedFile && !imagePreview) {
+      newErrors.image = 'Please select an image';
     }
 
     if (!formData.caption.trim()) {
@@ -67,15 +112,6 @@ const UploadPostModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const isValidUrl = (string) => {
-    try {
-      new URL(string);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -86,10 +122,24 @@ const UploadPostModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
     setIsSubmitting(true);
 
     try {
+      let imageUrl = formData.imageUrl;
+
+      // If user selected a file, upload it
+      if (selectedFile) {
+        setUploadProgress(10);
+        imageUrl = await uploadImage(
+          selectedFile,
+          currentUser?.id || 'anonymous',
+          'post',
+          (progress) => setUploadProgress(progress)
+        );
+        setUploadProgress(100);
+      }
+
       const postData = {
         username: currentUser?.name || currentUser?.username || 'Anonymous',
         location: formData.location,
-        imageUrl: formData.imageUrl,
+        imageUrl: imageUrl,
         caption: formData.caption,
         trashCollected: formData.trashCollected,
         upvotes: 0,
@@ -106,11 +156,13 @@ const UploadPostModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
         location: '',
         trashCollected: '',
       });
+      setSelectedFile(null);
       setImagePreview('');
+      setUploadProgress(0);
       onClose();
     } catch (error) {
       console.error('Error submitting post:', error);
-      setErrors({ submit: 'Failed to upload post. Please try again.' });
+      setErrors({ submit: error.message || 'Failed to upload post. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -123,8 +175,13 @@ const UploadPostModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
       location: '',
       trashCollected: '',
     });
+    setSelectedFile(null);
     setImagePreview('');
+    setUploadProgress(0);
     setErrors({});
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     onClose();
   };
 
@@ -133,42 +190,85 @@ const UploadPostModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
       <form onSubmit={handleSubmit}>
         <ModalBody>
           <div className="space-y-4">
-            {/* Image URL Input */}
+            {/* Image Upload */}
             <div>
-              <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                Image URL *
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Upload Image *
               </label>
-              <Input
-                id="imageUrl"
-                name="imageUrl"
-                type="text"
-                placeholder="https://example.com/your-image.jpg"
-                value={formData.imageUrl}
-                onChange={handleInputChange}
-                className={errors.imageUrl ? 'border-red-500' : ''}
-              />
-              {errors.imageUrl && (
-                <p className="text-red-600 text-xs mt-1">{errors.imageUrl}</p>
-              )}
-              <p className="text-gray-500 text-xs mt-1">
-                Paste a link to your cleanup photo (from Imgur, Google Photos, etc.)
-              </p>
-            </div>
 
-            {/* Image Preview */}
-            {imagePreview && isValidUrl(imagePreview) && (
-              <div className="border-2 border-gray-200 rounded-lg p-3 bg-gray-50">
-                <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
-                <div className="aspect-square max-w-xs mx-auto overflow-hidden rounded-lg bg-white">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                    onError={() => setImagePreview('')}
-                  />
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+
+              {/* Upload Button or Preview */}
+              {!imagePreview ? (
+                <button
+                  type="button"
+                  onClick={handleUploadButtonClick}
+                  className={`w-full border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                    errors.image
+                      ? 'border-red-300 bg-red-50 hover:bg-red-100'
+                      : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+                  }`}
+                >
+                  <Upload className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                  <p className="text-sm font-medium text-gray-700 mb-1">
+                    Click to upload image
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    JPEG, JPG, PNG, GIF, or WebP (max 5MB)
+                  </p>
+                </button>
+              ) : (
+                <div className="border-2 border-gray-200 rounded-lg p-3 bg-gray-50">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-sm font-medium text-gray-700">Preview:</p>
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="text-red-600 hover:text-red-800 text-sm font-medium"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="aspect-square max-w-xs mx-auto overflow-hidden rounded-lg bg-white">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  {selectedFile && (
+                    <p className="text-xs text-gray-600 mt-2 text-center">
+                      {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </p>
+                  )}
                 </div>
-              </div>
-            )}
+              )}
+
+              {errors.image && (
+                <p className="text-red-600 text-xs mt-1">{errors.image}</p>
+              )}
+
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="mt-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1 text-center">
+                    Uploading... {uploadProgress}%
+                  </p>
+                </div>
+              )}
+            </div>
 
             {/* Location Input */}
             <div>

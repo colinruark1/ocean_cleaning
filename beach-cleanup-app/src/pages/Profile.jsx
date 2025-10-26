@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { MapPin, Calendar, Trash2, Users, TrendingUp, Award } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { MapPin, Calendar, Trash2, Users, TrendingUp, Award, Camera, Pencil } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { mockStats, mockAchievements } from '../services/mockData';
 import { formatDate, calculatePercentage } from '../utils/helpers';
 import { Card, CardHeader, Avatar, StatCard, Badge, Button } from '../components/ui';
 import ProfileEditModal from '../components/ProfileEditModal';
+import { uploadImage, validateImage, fileToDataURL } from '../services/imageUpload';
 
 /**
  * Profile Page
@@ -14,6 +15,10 @@ import ProfileEditModal from '../components/ProfileEditModal';
 const Profile = () => {
   const { user, updateProfile } = useAuth();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ profile: 0, banner: 0 });
+
+  const profilePictureInputRef = useRef(null);
+  const bannerInputRef = useRef(null);
 
   // TODO: Fetch real stats and achievements from backend
   const stats = mockStats;
@@ -59,6 +64,62 @@ const Profile = () => {
     }
   };
 
+  const handleProfilePictureSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const validation = validateImage(file);
+    if (!validation.valid) {
+      alert(validation.error);
+      return;
+    }
+
+    try {
+      setUploadProgress((prev) => ({ ...prev, profile: 10 }));
+      const profilePictureUrl = await uploadImage(
+        file,
+        user?.id || 'anonymous',
+        'profile',
+        (progress) => setUploadProgress((prev) => ({ ...prev, profile: progress }))
+      );
+
+      await updateProfile({ profilePictureUrl });
+      setUploadProgress((prev) => ({ ...prev, profile: 0 }));
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      alert('Failed to upload profile picture');
+      setUploadProgress((prev) => ({ ...prev, profile: 0 }));
+    }
+  };
+
+  const handleBannerSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const validation = validateImage(file);
+    if (!validation.valid) {
+      alert(validation.error);
+      return;
+    }
+
+    try {
+      setUploadProgress((prev) => ({ ...prev, banner: 10 }));
+      const bannerUrl = await uploadImage(
+        file,
+        user?.id || 'anonymous',
+        'banner',
+        (progress) => setUploadProgress((prev) => ({ ...prev, banner: progress }))
+      );
+
+      await updateProfile({ bannerUrl });
+      setUploadProgress((prev) => ({ ...prev, banner: 0 }));
+    } catch (error) {
+      console.error('Error uploading banner:', error);
+      alert('Failed to upload banner');
+      setUploadProgress((prev) => ({ ...prev, banner: 0 }));
+    }
+  };
+
   // Show loading or login prompt if no user
   if (!user) {
     return (
@@ -74,10 +135,94 @@ const Profile = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Profile Header */}
       <Card className="mb-8 overflow-hidden">
-        <div className="h-32 bg-gradient-to-r from-ocean-400 to-ocean-600" />
+        {/* Banner with Edit Icon */}
+        <div className="relative">
+          <input
+            ref={bannerInputRef}
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+            onChange={handleBannerSelect}
+            className="hidden"
+          />
+          {user.bannerUrl ? (
+            <div className="h-48 w-full overflow-hidden">
+              <img
+                src={user.bannerUrl}
+                alt="Profile banner"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="h-48 bg-gradient-to-r from-ocean-400 to-ocean-600" />
+          )}
+          <button
+            type="button"
+            onClick={() => bannerInputRef.current?.click()}
+            className="absolute top-4 right-4 p-2.5 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+            title="Edit banner"
+          >
+            <Pencil className="h-5 w-5 text-gray-700" />
+          </button>
+          {uploadProgress.banner > 0 && uploadProgress.banner < 100 && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-64 bg-white rounded-full shadow-lg p-2">
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress.banner}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-600 mt-1 text-center">
+                Uploading banner... {uploadProgress.banner}%
+              </p>
+            </div>
+          )}
+        </div>
+
         <div className="px-6 pb-6">
+          {/* Profile Picture with Hover Effect */}
           <div className="flex items-start -mt-16 mb-4">
-            <Avatar name={user.name} size="xl" className="border-4 border-white" />
+            <input
+              ref={profilePictureInputRef}
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+              onChange={handleProfilePictureSelect}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => profilePictureInputRef.current?.click()}
+              className="relative group"
+              title="Click to change profile picture"
+            >
+              {user.profilePictureUrl ? (
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white bg-white shadow-lg">
+                  <img
+                    src={user.profilePictureUrl}
+                    alt={user.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <Avatar name={user.name} size="xl" className="border-4 border-white shadow-lg" />
+              )}
+              {/* Hover Overlay */}
+              <div className="absolute inset-0 rounded-full bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center border-4 border-white">
+                <Camera className="h-10 w-10 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              </div>
+            </button>
+            {uploadProgress.profile > 0 && uploadProgress.profile < 100 && (
+              <div className="ml-4 mt-16 bg-white rounded-lg shadow-lg p-3 min-w-[200px]">
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress.profile}%` }}
+                  />
+                </div>
+                <p className="text-xs text-gray-600 mt-1 text-center">
+                  Uploading... {uploadProgress.profile}%
+                </p>
+              </div>
+            )}
           </div>
           <div className="flex justify-between items-start flex-wrap gap-4">
             <div>

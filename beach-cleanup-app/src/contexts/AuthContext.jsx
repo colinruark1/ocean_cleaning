@@ -124,11 +124,9 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsLoading(true);
 
-      // Call backend API to update profile
-      const updatedUserData = await api.users.updateMe(updates);
-
-      // Update local state with response from backend
-      const updatedUser = { ...user, ...updatedUserData };
+      // TODO: Replace with actual API call when backend is ready
+      // For now, just update local state directly
+      const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
 

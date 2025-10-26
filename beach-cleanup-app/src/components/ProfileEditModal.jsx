@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, MapPin, Image } from 'lucide-react';
+import { User, MapPin } from 'lucide-react';
 import Modal, { ModalBody, ModalFooter } from './ui/Modal';
 import Input, { Textarea } from './ui/Input';
 import Button from './ui/Button';
@@ -13,7 +13,6 @@ const ProfileEditModal = ({ isOpen, onClose, user, onSave }) => {
     username: user?.username || '',
     location: user?.location || '',
     bio: user?.bio || '',
-    profilePictureUrl: user?.profilePictureUrl || '',
   });
 
   const [errors, setErrors] = useState({});
@@ -75,7 +74,6 @@ const ProfileEditModal = ({ isOpen, onClose, user, onSave }) => {
       username: user?.username || '',
       location: user?.location || '',
       bio: user?.bio || '',
-      profilePictureUrl: user?.profilePictureUrl || '',
     });
     setErrors({});
     onClose();
@@ -86,6 +84,7 @@ const ProfileEditModal = ({ isOpen, onClose, user, onSave }) => {
       <form onSubmit={handleSubmit}>
         <ModalBody>
           <div className="space-y-4">
+
             <Input
               label="Username"
               name="username"
@@ -117,17 +116,6 @@ const ProfileEditModal = ({ isOpen, onClose, user, onSave }) => {
               placeholder="Tell us about yourself and your passion for ocean conservation..."
               rows={4}
               helperText={`${formData.bio.length}/500 characters`}
-            />
-
-            <Input
-              label="Profile Picture URL"
-              name="profilePictureUrl"
-              value={formData.profilePictureUrl}
-              onChange={handleChange}
-              error={errors.profilePictureUrl}
-              leftIcon={<Image className="h-5 w-5" />}
-              placeholder="https://example.com/avatar.jpg"
-              helperText="Optional: Add a link to your profile picture"
             />
 
             {errors.submit && (
