@@ -10,6 +10,7 @@ import { testGoogleSheetsConnection } from '../utils/testGoogleSheets';
 import orcaImage from '../assets/orca.png';
 import turtleImage from '../assets/turtle.png';
 import whaleImage from '../assets/whale.png';
+import stingrayImage from '../assets/stingray-removebg-preview (1).png';
 
 /**
  * Dashboard Page
@@ -102,6 +103,27 @@ const Dashboard = () => {
               alt="Turtle"
               className="absolute bottom-10 right-8 sm:right-16 md:right-24 w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 object-contain animate-float-slow"
             />
+
+            {/* Stingray gliding across the bottom with unique wave motion and electric zaps */}
+            <div className="absolute w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 animate-glide-wave">
+              <img
+                src={stingrayImage}
+                alt="Stingray"
+                className="w-full h-full object-contain"
+              />
+              {/* Lightning bolt 1 - top right */}
+              <svg className="absolute -top-2 -right-2 w-6 h-6 animate-electric-zap" viewBox="0 0 24 24" fill="none">
+                <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" fill="#FFE66D" stroke="#FFD700" strokeWidth="1"/>
+              </svg>
+              {/* Lightning bolt 2 - left side */}
+              <svg className="absolute top-1/4 -left-3 w-5 h-5 animate-electric-zap-delayed" viewBox="0 0 24 24" fill="none">
+                <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" fill="#FFE66D" stroke="#FFD700" strokeWidth="1"/>
+              </svg>
+              {/* Lightning bolt 3 - bottom */}
+              <svg className="absolute -bottom-1 left-1/3 w-4 h-4 animate-electric-zap" viewBox="0 0 24 24" fill="none">
+                <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" fill="#FFE66D" stroke="#FFD700" strokeWidth="1"/>
+              </svg>
+            </div>
 
             {/* Animated bubbles - SVG */}
             <svg className="absolute inset-0 w-full h-full">

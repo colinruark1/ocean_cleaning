@@ -108,7 +108,7 @@ const CleanupPost = ({ post }) => {
 
         {/* Caption area - polaroid style bottom space */}
         <div className="bg-white px-3 py-4 min-h-[80px]">
-          <p className="text-gray-800 text-sm leading-relaxed text-center font-handwriting">
+          <p className="text-gray-800 text-sm leading-relaxed text-center">
             {post.caption}
           </p>
           {post.trashCollected && (

@@ -21,6 +21,10 @@ export default {
           900: '#0c4a6e',
         },
       },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        display: ['Inter', 'system-ui', 'sans-serif'],
+      },
     },
   },
   plugins: [],

@@ -30,7 +30,7 @@ const Navigation = () => {
           <div className="flex">
             <Link to="/" className="flex-shrink-0 flex items-center">
               <Waves className="h-8 w-8" style={{color: '#DDA853'}} />
-              <span className="ml-2 text-2xl font-bold" style={{color: '#F3F3E0'}}>OceanClean</span>
+              <span className="ml-2 text-2xl font-bold italic" style={{color: '#F3F3E0'}}>Clean Wave</span>
             </Link>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {navLinks.map(({ path, label, icon: Icon }) => (
