@@ -270,21 +270,25 @@ input, textarea, select {
   perspective: 1000px;
 }
 
-.polaroid-container:hover > div {
-  transform: rotate(0deg) scale(1.02);
-}
-
 .polaroid-container > div {
   transition: transform 0.3s ease;
+  animation: float 6s ease-in-out infinite;
   transform: rotate(-2deg);
 }
 
 .polaroid-container:nth-child(even) > div {
+  animation: float-delayed 8s ease-in-out infinite;
   transform: rotate(2deg);
 }
 
 .polaroid-container:nth-child(3n) > div {
+  animation: float-slow 8s ease-in-out infinite;
   transform: rotate(-1deg);
+}
+
+.polaroid-container:hover > div {
+  animation: none !important;
+  transform: rotate(0deg) scale(1.02) !important;
 }
 
 /* Handwriting-style font for captions */
