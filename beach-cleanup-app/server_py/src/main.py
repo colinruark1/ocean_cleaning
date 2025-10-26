@@ -8,10 +8,13 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from datetime import datetime
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables FIRST before importing anything else
-load_dotenv()
+# Look for .env file in the parent directory (beach-cleanup-app/.env)
+env_path = Path(__file__).parent.parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 # Import routes
 from src.routes import auth_routes, posts_routes, events_routes
@@ -68,6 +71,13 @@ async def general_exception_handler(request: Request, exc: Exception):
 async def startup_event():
     """Initialize database connection on startup"""
     await db_manager.get_connection()
+
+    # Debug: Check if env vars are loaded
+    spreadsheet_id = os.getenv("VITE_GOOGLE_SHEETS_SPREADSHEET_ID")
+    print(f"[DEBUG] Spreadsheet ID loaded: {spreadsheet_id[:20] if spreadsheet_id else 'NOT FOUND'}...")
+    print(f"[DEBUG] .env file path: {env_path}")
+    print(f"[DEBUG] .env file exists: {env_path.exists()}")
+
     print("""
 ==============================================================
   Beach Cleanup API Server (Python/FastAPI)

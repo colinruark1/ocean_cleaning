@@ -118,6 +118,10 @@ class GoogleSheetsService:
         Returns:
             bool: True if successful, False otherwise
         """
+        # Validate spreadsheet_id is set
+        if not self.spreadsheet_id:
+            raise Exception('Missing required parameter "spreadsheetId" - check VITE_GOOGLE_SHEETS_SPREADSHEET_ID in .env file')
+
         # Try Google Sheets API first if available
         if self.service:
             try:

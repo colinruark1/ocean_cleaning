@@ -34,6 +34,9 @@ async def add_post(post: PostData):
         # Convert Pydantic model to dict
         post_data = post.model_dump()
 
+        print(f"[DEBUG] Received post data: {post_data.get('id', 'NO_ID')}")
+        print(f"[DEBUG] sheets_service.spreadsheet_id: {sheets_service.spreadsheet_id}")
+
         # Add post to Google Sheets
         sheets_service.add_post(post_data)
 
@@ -44,6 +47,9 @@ async def add_post(post: PostData):
         }
 
     except Exception as e:
+        print(f"[ERROR] Error in add_post endpoint: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=500,
             detail=f"Error adding post: {str(e)}"

@@ -102,6 +102,24 @@ const Dashboard = () => {
               alt="Turtle"
               className="absolute bottom-10 right-8 sm:right-16 md:right-24 w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 object-contain animate-float-slow"
             />
+
+            {/* Animated bubbles - SVG */}
+            <svg className="absolute inset-0 w-full h-full">
+              {/* Bubble group 1 - left side */}
+              <circle cx="15%" cy="80%" r="4" fill="rgba(255, 255, 255, 0.6)" className="animate-bubble-1" />
+              <circle cx="18%" cy="75%" r="6" fill="rgba(255, 255, 255, 0.5)" className="animate-bubble-2" />
+              <circle cx="12%" cy="85%" r="3" fill="rgba(255, 255, 255, 0.7)" className="animate-bubble-3" />
+
+              {/* Bubble group 2 - center */}
+              <circle cx="45%" cy="90%" r="5" fill="rgba(255, 255, 255, 0.6)" className="animate-bubble-2" />
+              <circle cx="50%" cy="85%" r="4" fill="rgba(255, 255, 255, 0.5)" className="animate-bubble-1" />
+              <circle cx="48%" cy="95%" r="3" fill="rgba(255, 255, 255, 0.7)" className="animate-bubble-3" />
+
+              {/* Bubble group 3 - right side */}
+              <circle cx="85%" cy="75%" r="6" fill="rgba(255, 255, 255, 0.5)" className="animate-bubble-1" />
+              <circle cx="88%" cy="80%" r="4" fill="rgba(255, 255, 255, 0.6)" className="animate-bubble-3" />
+              <circle cx="82%" cy="85%" r="5" fill="rgba(255, 255, 255, 0.6)" className="animate-bubble-2" />
+            </svg>
           </div>
 
           <div className="text-center relative z-10">
