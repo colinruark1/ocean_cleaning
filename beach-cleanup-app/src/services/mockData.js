@@ -10,7 +10,7 @@ export const mockUser = {
   location: 'Santa Monica, CA',
   joined: 'January 2024',
   bio: 'Ocean lover and environmental advocate committed to protecting our beaches',
-  avatar: null,
+  profilePictureUrl: null,
 };
 
 export const mockStats = {
@@ -68,6 +68,7 @@ export const mockEvents = [
     description: 'Join us for a morning of cleaning our beautiful beach!',
     organizer: 'Ocean Warriors',
     difficulty: 'Easy',
+    imageUrl: 'https://picsum.photos/seed/event1/600/400',
   },
   {
     id: 2,
@@ -81,6 +82,7 @@ export const mockEvents = [
     description: 'Early morning cleanup focusing on marine debris.',
     organizer: 'Save Our Seas',
     difficulty: 'Moderate',
+    imageUrl: 'https://picsum.photos/seed/event2/600/400',
   },
   {
     id: 3,
@@ -94,6 +96,7 @@ export const mockEvents = [
     description: 'Family-friendly event with activities for kids!',
     organizer: 'Clean Coast Initiative',
     difficulty: 'Easy',
+    imageUrl: '',
   },
 ];
 
@@ -191,5 +194,88 @@ export const mockAchievements = [
     earned: false,
     progress: 24,
     target: 50,
+  },
+];
+
+export const mockCleanupPosts = [
+  {
+    id: 1,
+    username: 'Sarah Johnson',
+    location: 'Venice Beach, CA',
+    date: 'Oct 23',
+    imageUrl: 'https://picsum.photos/seed/beach1/500/500',
+    caption: 'Amazing morning cleaning up Venice Beach! Found so many bottle caps and plastic straws.',
+    trashCollected: '45 lbs',
+    upvotes: 127,
+  },
+  {
+    id: 2,
+    username: 'Mike Chen',
+    location: 'Santa Monica Pier',
+    date: 'Oct 22',
+    imageUrl: 'https://picsum.photos/seed/beach2/500/500',
+    caption: 'Team effort at Santa Monica! We filled 12 bags with plastic waste.',
+    trashCollected: '82 lbs',
+    upvotes: 203,
+  },
+  {
+    id: 3,
+    username: 'Ocean Warriors',
+    location: 'Malibu Coast',
+    date: 'Oct 21',
+    imageUrl: 'https://picsum.photos/seed/beach3/500/500',
+    caption: 'Beautiful sunset cleanup session. Every piece counts!',
+    trashCollected: '68 lbs',
+    upvotes: 189,
+  },
+  {
+    id: 4,
+    username: 'Emma Davis',
+    location: 'Laguna Beach',
+    date: 'Oct 20',
+    imageUrl: 'https://picsum.photos/seed/beach4/500/500',
+    caption: 'Found this beautiful spot and decided to give back. Collected mostly fishing nets today.',
+    trashCollected: '34 lbs',
+    upvotes: 156,
+  },
+  {
+    id: 5,
+    username: 'Beach Guardians',
+    location: 'Huntington Beach',
+    date: 'Oct 19',
+    imageUrl: 'https://picsum.photos/seed/beach5/500/500',
+    caption: 'Youth cleanup day was a huge success! 50 volunteers showed up!',
+    trashCollected: '156 lbs',
+    upvotes: 342,
+  },
+  {
+    id: 6,
+    username: 'Carlos Martinez',
+    location: 'Newport Beach',
+    date: 'Oct 18',
+    imageUrl: 'https://picsum.photos/seed/beach6/500/500',
+    caption: 'Early morning solo cleanup. The beach looks so much better now!',
+    trashCollected: '23 lbs',
+    upvotes: 98,
+  },
+  {
+    id: 7,
+    username: 'Lisa Wang',
+    location: 'Seal Beach',
+    date: 'Oct 17',
+    imageUrl: 'https://picsum.photos/seed/beach7/500/500',
+    caption: 'Joined my first cleanup event today! Met amazing people and made a real difference.',
+    trashCollected: '41 lbs',
+    upvotes: 167,
+  },
+  {
+    id: 8,
+    username: 'Youth for Clean Seas',
+    location: 'Redondo Beach',
+    date: 'Oct 16',
+    imageUrl: 'https://picsum.photos/seed/beach8/500/500',
+    caption: 'School group making waves! Thanks to all the students who volunteered.',
+    trashCollected: '112 lbs',
+    upvotes: 278,
   },
 ];

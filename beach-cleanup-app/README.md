@@ -42,14 +42,62 @@ A Strava-inspired mobile and web application for organizing and tracking beach c
 - **Icons**: Lucide React
 - **UI/UX**: Inspired by Strava's clean, activity-focused design
 
-## Installation
+## Quick Installation
 
-1. **Install dependencies**:
+### Easy One-Command Setup
+
+**Windows:**
+```bash
+install.bat
+```
+
+**Mac/Linux:**
+```bash
+./install.sh
+```
+
+This will automatically install all Python and Node.js dependencies!
+
+### Running the App
+
+**Terminal 1 (Backend):**
+```bash
+# Windows
+start-python-backend.bat
+
+# Mac/Linux
+./start-python-backend.sh
+```
+
+**Terminal 2 (Frontend):**
+```bash
+npm run dev
+```
+
+Then open:
+- **App**: http://localhost:5173
+- **API Docs**: http://localhost:8000/docs
+
+---
+
+## Manual Installation
+
+### Prerequisites
+- Python 3.8+ ([Download](https://www.python.org/downloads/))
+- Node.js 18+ ([Download](https://nodejs.org/))
+
+### Steps
+
+1. **Install all dependencies**:
    ```bash
-   npm install
+   # Windows
+   install.bat
+
+   # Mac/Linux
+   ./install.sh
    ```
 
-2. **Set up environment variables**:
+2. **Set up environment variables** (optional):
    - Copy `.env.example` to `.env`
    - Get a Google Maps API key from [Google Cloud Console](https://console.cloud.google.com/google/maps-apis)
    - Enable these APIs:
@@ -60,13 +108,23 @@ A Strava-inspired mobile and web application for organizing and tracking beach c
      VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
      ```
 
-3. **Run the development server**:
+3. **Run the backend**:
+   ```bash
+   # Windows
+   start-python-backend.bat
+
+   # Mac/Linux
+   ./start-python-backend.sh
+   ```
+
+4. **Run the frontend** (separate terminal):
    ```bash
    npm run dev
    ```
 
-4. **Open your browser**:
-   Navigate to `http://localhost:5173`
+5. **Open your browser**:
+   - App: `http://localhost:5173`
+   - API Documentation: `http://localhost:8000/docs`
 
 ## Building for Android
 

@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Users, Clock, Plus, Search, Map, List, Bell, BellOff } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Calendar, MapPin, Users, Clock, Plus, Search, Map, List, Bell, BellOff, Upload, X, Navigation } from 'lucide-react';
 import { useEvents } from '../hooks/useEvents';
 import { useApp } from '../contexts/AppContext';
 import { formatDate, formatDistance, findNearbyEvents } from '../utils/helpers';
 import { getCurrentPosition } from '../services/geolocation';
 import { notifyNearbyCleanups } from '../services/notifications';
+import { uploadImage, validateImage, fileToDataURL } from '../services/imageUpload';
+import { geocodeAddress } from '../services/geocoding';
 import EventsMap from '../components/EventsMap';
 import {
   Button,
@@ -26,16 +28,23 @@ import PageHeader from '../components/layout/PageHeader';
  * Refactored with industry-standard patterns
  */
 const Events = () => {
-  const { events, isLoading, error, createEvent, joinEvent } = useEvents();
-  const { showSuccess, showError } = useApp();
+  const { events, isLoading, error, createEvent, joinEvent, leaveEvent, joinedEventIds } = useEvents();
+  const { showSuccess, showError, currentUser } = useApp();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
+  const [eventTab, setEventTab] = useState('browse'); // 'browse' or 'myevents'
   const [userLocation, setUserLocation] = useState(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  // Image upload states
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef(null);
 
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -44,7 +53,13 @@ const Events = () => {
     time: '',
     maxParticipants: '',
     description: '',
+    imageUrl: '',
+    coordinates: null,
   });
+
+  // Geocoding states
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [geocodedAddress, setGeocodedAddress] = useState('');
 
   // Get user's location on component mount
   useEffect(() => {
@@ -60,14 +75,18 @@ const Events = () => {
 
   const getUserLocation = async () => {
     setIsLoadingLocation(true);
-    const location = await getCurrentPosition();
-    if (location) {
+    try {
+      const location = await getCurrentPosition();
       setUserLocation(location);
-      showSuccess('Location detected!');
-    } else {
-      showError('Could not get your location. Please enable location permissions.');
+      showSuccess('Location detected successfully!');
+    } catch (error) {
+      console.error('Location error:', error);
+      // Use the error message from the geolocation service if available
+      const errorMessage = error.message || 'Failed to access location. Please check your browser permissions.';
+      showError(errorMessage);
+    } finally {
+      setIsLoadingLocation(false);
     }
-    setIsLoadingLocation(false);
   };
 
   const checkNearbyEvents = async () => {
@@ -91,12 +110,20 @@ const Events = () => {
     }
   };
 
-  // Filter events based on search query and add distance if user location exists
+  // Filter events based on search query, tab selection, and add distance if user location exists
   const filteredEvents = events
-    .filter(event =>
-      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.location.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    .filter(event => {
+      // Filter by tab - browse shows events not joined, myevents shows joined events
+      const tabMatch = eventTab === 'browse'
+        ? !joinedEventIds.includes(event.id)
+        : joinedEventIds.includes(event.id);
+
+      // Filter by search query
+      const searchMatch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.location.toLowerCase().includes(searchQuery.toLowerCase());
+
+      return tabMatch && searchMatch;
+    })
     .map(event => {
       if (userLocation && event.coordinates) {
         const eventsWithDistance = findNearbyEvents([event], userLocation, 1000);
@@ -105,41 +132,190 @@ const Events = () => {
       return event;
     });
 
+  const handleFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate the file
+    const validation = validateImage(file);
+    if (!validation.valid) {
+      showError(validation.error);
+      return;
+    }
+
+    // Store the file
+    setSelectedFile(file);
+
+    // Generate preview
+    try {
+      const dataUrl = await fileToDataURL(file);
+      setImagePreview(dataUrl);
+    } catch (error) {
+      console.error('Error generating preview:', error);
+      showError('Failed to generate image preview');
+    }
+  };
+
+  const handleUploadButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedFile(null);
+    setImagePreview('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleCreateEvent = async (e) => {
     e.preventDefault();
     setIsCreating(true);
 
-    const result = await createEvent(newEvent);
+    try {
+      let imageUrl = newEvent.imageUrl;
 
-    if (result.success) {
-      showSuccess('Event created successfully!');
-      setNewEvent({
-        title: '',
-        location: '',
-        date: '',
-        time: '',
-        maxParticipants: '',
-        description: '',
-      });
-      setShowCreateModal(false);
-    } else {
-      showError(result.error || 'Failed to create event');
+      // If user selected a file, upload it
+      if (selectedFile) {
+        setUploadProgress(10);
+        imageUrl = await uploadImage(
+          selectedFile,
+          currentUser?.id || 'anonymous',
+          'event',
+          (progress) => setUploadProgress(progress)
+        );
+        setUploadProgress(100);
+      }
+
+      const eventData = {
+        ...newEvent,
+        imageUrl: imageUrl || '',
+        coordinates: newEvent.coordinates || null,
+      };
+
+      const result = await createEvent(eventData);
+
+      if (result.success) {
+        showSuccess('Event created successfully!');
+        setNewEvent({
+          title: '',
+          location: '',
+          date: '',
+          time: '',
+          maxParticipants: '',
+          description: '',
+          imageUrl: '',
+          coordinates: null,
+        });
+        setSelectedFile(null);
+        setImagePreview('');
+        setUploadProgress(0);
+        setGeocodedAddress('');
+        setShowCreateModal(false);
+      } else {
+        showError(result.error || 'Failed to create event');
+      }
+    } catch (error) {
+      console.error('Error creating event:', error);
+      showError('Failed to create event. Please try again.');
+    } finally {
+      setIsCreating(false);
     }
-
-    setIsCreating(false);
   };
 
   const handleJoinEvent = async (eventId) => {
     const result = await joinEvent(eventId);
     if (result.success) {
-      showSuccess('You have joined the event!');
+      showSuccess('Successfully registered for the event!');
     } else {
       showError(result.error || 'Failed to join event');
     }
   };
 
+  const handleLeaveEvent = async (eventId) => {
+    const result = await leaveEvent(eventId);
+    if (result.success) {
+      showSuccess('You have left the event');
+    } else {
+      showError(result.error || 'Failed to leave event');
+    }
+  };
+
   const handleInputChange = (field, value) => {
     setNewEvent(prev => ({ ...prev, [field]: value }));
+    // Clear geocoded data if location changes
+    if (field === 'location') {
+      setGeocodedAddress('');
+      setNewEvent(prev => ({ ...prev, coordinates: null }));
+    }
+  };
+
+  const handleGeocodeAddress = async () => {
+    if (!newEvent.location || newEvent.location.trim() === '') {
+      showError('Please enter a location first');
+      return;
+    }
+
+    setIsGeocoding(true);
+    try {
+      const result = await geocodeAddress(newEvent.location);
+
+      if (result) {
+        setNewEvent(prev => ({
+          ...prev,
+          coordinates: {
+            lat: result.lat,
+            lng: result.lng,
+          },
+        }));
+        setGeocodedAddress(result.formattedAddress);
+        showSuccess('Location coordinates found!');
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      showError(error.message || 'Failed to find location. Please try a different address.');
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
+
+  const handleUseCurrentLocation = async () => {
+    setIsGeocoding(true);
+    try {
+      const position = await getCurrentPosition();
+
+      if (position) {
+        setNewEvent(prev => ({
+          ...prev,
+          coordinates: position,
+        }));
+
+        // Try to reverse geocode to get address
+        try {
+          const { reverseGeocode } = await import('../services/geocoding');
+          const address = await reverseGeocode(position.lat, position.lng);
+          setGeocodedAddress(address);
+
+          // Optionally update location field if it's empty
+          if (!newEvent.location) {
+            setNewEvent(prev => ({
+              ...prev,
+              location: address,
+            }));
+          }
+        } catch (err) {
+          // Reverse geocoding failed, but we still have coordinates
+          setGeocodedAddress(`${position.lat.toFixed(6)}, ${position.lng.toFixed(6)}`);
+        }
+
+        showSuccess('Current location coordinates set!');
+      }
+    } catch (error) {
+      console.error('Location error:', error);
+      showError(error.message || 'Failed to get current location');
+    } finally {
+      setIsGeocoding(false);
+    }
   };
 
   if (error) {
@@ -166,6 +342,35 @@ const Events = () => {
           </Button>
         }
       />
+
+      {/* Event Tabs */}
+      <div className="mb-6 flex gap-2 border-b border-gray-200">
+        <button
+          onClick={() => setEventTab('browse')}
+          className={`px-6 py-3 font-medium transition-colors ${
+            eventTab === 'browse'
+              ? 'text-ocean-600 border-b-2 border-ocean-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Browse Events
+        </button>
+        <button
+          onClick={() => setEventTab('myevents')}
+          className={`px-6 py-3 font-medium transition-colors ${
+            eventTab === 'myevents'
+              ? 'text-ocean-600 border-b-2 border-ocean-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          My Events
+          {joinedEventIds.length > 0 && (
+            <span className="ml-2 px-2 py-0.5 text-xs bg-ocean-100 text-ocean-700 rounded-full">
+              {joinedEventIds.length}
+            </span>
+          )}
+        </button>
+      </div>
 
       {/* Controls Bar */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
@@ -228,7 +433,11 @@ const Events = () => {
               Location not detected. Enable location to see nearby events and get notifications.
             </span>
           </div>
-          <Button size="sm" onClick={getUserLocation}>
+          <Button
+            size="sm"
+            onClick={getUserLocation}
+            leftIcon={<MapPin className="h-4 w-4" />}
+          >
             Enable Location
           </Button>
         </div>
@@ -254,14 +463,22 @@ const Events = () => {
           ) : filteredEvents.length === 0 ? (
             <EmptyState
               icon={<Calendar className="h-12 w-12" />}
-              title={searchQuery ? 'No events found' : 'No events available'}
+              title={
+                searchQuery
+                  ? 'No events found'
+                  : eventTab === 'myevents'
+                  ? 'No registered events'
+                  : 'No events available'
+              }
               description={
                 searchQuery
                   ? 'Try adjusting your search query'
+                  : eventTab === 'myevents'
+                  ? 'You haven\'t registered for any events yet. Browse events to find one near you!'
                   : 'Be the first to create a cleanup event in your area!'
               }
               action={
-                !searchQuery && (
+                !searchQuery && eventTab === 'browse' && (
                   <Button onClick={() => setShowCreateModal(true)}>
                     Create First Event
                   </Button>
@@ -272,7 +489,16 @@ const Events = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredEvents.map((event) => (
                 <Card key={event.id} hoverable className="overflow-hidden">
-                  <div className="h-48 bg-gradient-to-br from-ocean-400 to-ocean-600 relative">
+                  <div className="h-48 relative">
+                    {event.imageUrl ? (
+                      <img
+                        src={event.imageUrl}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-ocean-400 to-ocean-600" />
+                    )}
                     {event.distance && (
                       <div className="absolute top-4 right-4 bg-white rounded-full px-3 py-1 shadow-lg">
                         <span className="text-sm font-semibold text-ocean-600">
@@ -306,13 +532,23 @@ const Events = () => {
                       <Badge variant="primary" size="md">
                         {event.difficulty}
                       </Badge>
-                      <Button
-                        size="sm"
-                        onClick={() => handleJoinEvent(event.id)}
-                        disabled={event.participants >= event.maxParticipants}
-                      >
-                        {event.participants >= event.maxParticipants ? 'Full' : 'Join Event'}
-                      </Button>
+                      {eventTab === 'browse' ? (
+                        <Button
+                          size="sm"
+                          onClick={() => handleJoinEvent(event.id)}
+                          disabled={event.participants >= event.maxParticipants}
+                        >
+                          {event.participants >= event.maxParticipants ? 'Full' : 'Register'}
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleLeaveEvent(event.id)}
+                        >
+                          Leave Event
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </Card>
@@ -325,13 +561,96 @@ const Events = () => {
       {/* Create Event Modal */}
       <Modal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={() => {
+          setShowCreateModal(false);
+          setSelectedFile(null);
+          setImagePreview('');
+          setUploadProgress(0);
+          setGeocodedAddress('');
+          setNewEvent(prev => ({ ...prev, coordinates: null }));
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        }}
         title="Create New Event"
         size="md"
       >
         <form onSubmit={handleCreateEvent}>
           <ModalBody>
             <div className="space-y-4">
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Event Image (Optional)
+                </label>
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
+                {/* Upload Button or Preview */}
+                {!imagePreview ? (
+                  <button
+                    type="button"
+                    onClick={handleUploadButtonClick}
+                    className="w-full border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-colors bg-gray-50 hover:bg-gray-100"
+                  >
+                    <Upload className="h-10 w-10 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm font-medium text-gray-700 mb-1">
+                      Click to upload event image
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      JPEG, JPG, PNG, GIF, or WebP (max 5MB)
+                    </p>
+                  </button>
+                ) : (
+                  <div className="border-2 border-gray-200 rounded-lg p-3 bg-gray-50">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-sm font-medium text-gray-700">Preview:</p>
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium flex items-center gap-1"
+                      >
+                        <X className="h-4 w-4" />
+                        Remove
+                      </button>
+                    </div>
+                    <div className="aspect-video max-w-sm mx-auto overflow-hidden rounded-lg bg-white">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {selectedFile && (
+                      <p className="text-xs text-gray-600 mt-2 text-center">
+                        {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-ocean-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1 text-center">
+                      Uploading... {uploadProgress}%
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <Input
                 label="Event Title"
                 type="text"
@@ -341,14 +660,75 @@ const Events = () => {
                 placeholder="e.g., Saturday Beach Cleanup"
               />
 
-              <Input
-                label="Location"
-                type="text"
-                required
-                value={newEvent.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
-                placeholder="e.g., Venice Beach, CA"
-              />
+              <div>
+                <Input
+                  label="Location / Address"
+                  type="text"
+                  required
+                  value={newEvent.location}
+                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  placeholder="e.g., Venice Beach, CA or 123 Main St, Los Angeles"
+                  helperText="Enter the location name or full address"
+                />
+
+                {/* Geocoding Controls */}
+                <div className="mt-2 flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={handleGeocodeAddress}
+                    disabled={isGeocoding || !newEvent.location}
+                    leftIcon={<MapPin className="h-4 w-4" />}
+                    className="flex-1"
+                  >
+                    {isGeocoding ? 'Getting Coordinates...' : 'Get Coordinates from Address'}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={handleUseCurrentLocation}
+                    disabled={isGeocoding}
+                    leftIcon={<Navigation className="h-4 w-4" />}
+                    title="Use your current location"
+                  >
+                    Use Current
+                  </Button>
+                </div>
+
+                {/* Geocoding Result Display */}
+                {newEvent.coordinates && (
+                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-green-900">
+                          Coordinates Set
+                        </p>
+                        {geocodedAddress && (
+                          <p className="text-xs text-green-700 mt-1">
+                            {geocodedAddress}
+                          </p>
+                        )}
+                        <p className="text-xs text-green-600 mt-1 font-mono">
+                          {newEvent.coordinates.lat.toFixed(6)}, {newEvent.coordinates.lng.toFixed(6)}
+                        </p>
+                        <p className="text-xs text-green-600 mt-1">
+                          This event will appear on the map!
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {!newEvent.coordinates && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Optional: Add coordinates to show this event on the map
+                  </p>
+                )}
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <Input

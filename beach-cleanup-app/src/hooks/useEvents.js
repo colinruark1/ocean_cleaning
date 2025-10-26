@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import { mockEvents } from '../services/mockData';
+import { fetchEvents, addEvent as addEventToSheets, updateEventParticipants } from '../services/googleSheets';
 
 /**
  * Custom hook for managing events
@@ -10,23 +11,28 @@ export const useEvents = () => {
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [joinedEventIds, setJoinedEventIds] = useState(() => {
+    // Load joined events from localStorage on init
+    const stored = localStorage.getItem('joinedEventIds');
+    return stored ? JSON.parse(stored) : [];
+  });
 
   /**
    * Fetch all events
    */
-  const fetchEvents = useCallback(async (params = {}) => {
+  const fetchEventsData = useCallback(async (params = {}) => {
     try {
       setIsLoading(true);
       setError(null);
-      // TODO: Replace with real API call
-      // const data = await api.events.getAll(params);
 
-      // Using mock data for now
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-      setEvents(mockEvents);
+      // Fetch events from Google Sheets via backend
+      const data = await fetchEvents();
+      setEvents(data);
     } catch (err) {
       setError(err.message);
       console.error('Error fetching events:', err);
+      // Fallback to mock data on error
+      setEvents(mockEvents);
     } finally {
       setIsLoading(false);
     }
@@ -40,18 +46,15 @@ export const useEvents = () => {
       setIsLoading(true);
       setError(null);
 
-      // TODO: Replace with real API call
-      // const newEvent = await api.events.create(eventData);
+      // Add event to Google Sheets via backend
+      const newEvent = await addEventToSheets(eventData);
 
-      const newEvent = {
-        id: Date.now(),
-        ...eventData,
-        participants: 1,
-        organizer: 'You',
-        difficulty: eventData.difficulty || 'Easy',
-      };
-
+      // Add to local state
       setEvents(prev => [newEvent, ...prev]);
+
+      // Automatically join the event you created
+      setJoinedEventIds(prev => [...prev, newEvent.id]);
+
       return { success: true, event: newEvent };
     } catch (err) {
       setError(err.message);
@@ -115,57 +118,99 @@ export const useEvents = () => {
    */
   const joinEvent = useCallback(async (eventId) => {
     try {
-      // TODO: Replace with real API call
-      // await api.events.join(eventId);
+      // Check if already joined
+      if (joinedEventIds.includes(eventId)) {
+        return { success: false, error: 'You have already joined this event' };
+      }
 
+      // Find the event
+      const event = events.find(e => e.id === eventId);
+      if (!event) {
+        return { success: false, error: 'Event not found' };
+      }
+
+      const newParticipantCount = event.participants + 1;
+
+      // Update in Google Sheets via backend
+      await updateEventParticipants(eventId, newParticipantCount);
+
+      // Update local state
       setEvents(prev =>
-        prev.map(event =>
-          event.id === eventId
-            ? { ...event, participants: event.participants + 1 }
-            : event
+        prev.map(e =>
+          e.id === eventId
+            ? { ...e, participants: newParticipantCount }
+            : e
         )
       );
+
+      // Track this event as joined
+      setJoinedEventIds(prev => [...prev, eventId]);
+
       return { success: true };
     } catch (err) {
       setError(err.message);
       console.error('Error joining event:', err);
       return { success: false, error: err.message };
     }
-  }, []);
+  }, [joinedEventIds, events]);
 
   /**
    * Leave an event
    */
   const leaveEvent = useCallback(async (eventId) => {
     try {
-      // TODO: Replace with real API call
-      // await api.events.leave(eventId);
+      // Check if actually joined
+      if (!joinedEventIds.includes(eventId)) {
+        return { success: false, error: 'You have not joined this event' };
+      }
 
+      // Find the event
+      const event = events.find(e => e.id === eventId);
+      if (!event) {
+        return { success: false, error: 'Event not found' };
+      }
+
+      const newParticipantCount = Math.max(0, event.participants - 1);
+
+      // Update in Google Sheets via backend
+      await updateEventParticipants(eventId, newParticipantCount);
+
+      // Update local state
       setEvents(prev =>
-        prev.map(event =>
-          event.id === eventId
-            ? { ...event, participants: Math.max(0, event.participants - 1) }
-            : event
+        prev.map(e =>
+          e.id === eventId
+            ? { ...e, participants: newParticipantCount }
+            : e
         )
       );
+
+      // Remove from joined events
+      setJoinedEventIds(prev => prev.filter(id => id !== eventId));
+
       return { success: true };
     } catch (err) {
       setError(err.message);
       console.error('Error leaving event:', err);
       return { success: false, error: err.message };
     }
-  }, []);
+  }, [joinedEventIds, events]);
 
   // Fetch events on mount
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    fetchEventsData();
+  }, [fetchEventsData]);
+
+  // Save joined events to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('joinedEventIds', JSON.stringify(joinedEventIds));
+  }, [joinedEventIds]);
 
   return {
     events,
     isLoading,
     error,
-    fetchEvents,
+    joinedEventIds,
+    fetchEvents: fetchEventsData,
     createEvent,
     updateEvent,
     deleteEvent,

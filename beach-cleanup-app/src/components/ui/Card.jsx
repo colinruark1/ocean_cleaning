@@ -18,7 +18,8 @@ const Card = ({
 
   return (
     <div
-      className={`bg-white rounded-lg shadow ${hoverStyles} ${clickableStyles} ${className}`}
+      className={`rounded-lg shadow-md ${hoverStyles} ${clickableStyles} ${className}`}
+      style={{backgroundColor: '#FFFFFF'}}
       onClick={onClick}
       {...props}
     >
@@ -31,7 +32,7 @@ const Card = ({
  * Card Header component
  */
 export const CardHeader = ({ children, className = '', ...props }) => (
-  <div className={`px-6 py-4 border-b border-gray-200 ${className}`} {...props}>
+  <div className={`px-6 py-4 border-b ${className}`} style={{borderColor: '#E5E7EB'}} {...props}>
     {children}
   </div>
 );
@@ -49,7 +50,7 @@ export const CardBody = ({ children, className = '', ...props }) => (
  * Card Footer component
  */
 export const CardFooter = ({ children, className = '', ...props }) => (
-  <div className={`px-6 py-4 border-t border-gray-200 ${className}`} {...props}>
+  <div className={`px-6 py-4 border-t ${className}`} style={{borderColor: '#E5E7EB'}} {...props}>
     {children}
   </div>
 );

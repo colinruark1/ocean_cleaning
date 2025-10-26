@@ -1,0 +1,125 @@
+"""
+Beach Cleanup API Server - FastAPI
+Main application entry point
+"""
+from fastapi import FastAPI, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from datetime import datetime
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables FIRST before importing anything else
+# Look for .env file in the parent directory (beach-cleanup-app/.env)
+env_path = Path(__file__).parent.parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
+
+# Import routes
+from src.routes import auth_routes, posts_routes, events_routes
+from src.config.database import db_manager
+
+# Create FastAPI app
+app = FastAPI(
+    title="Beach Cleanup API",
+    description="API for organizing and tracking beach cleanup events",
+    version="1.0.0"
+)
+
+# CORS configuration
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ============================================================================
+# Exception Handlers
+# ============================================================================
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle validation errors"""
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={
+            "error": "Validation Error",
+            "details": exc.errors()
+        }
+    )
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    """Handle general exceptions"""
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "error": str(exc),
+            "detail": "Internal server error"
+        }
+    )
+
+# ============================================================================
+# Startup/Shutdown Events
+# ============================================================================
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database connection on startup"""
+    await db_manager.get_connection()
+
+    # Debug: Check if env vars are loaded
+    spreadsheet_id = os.getenv("VITE_GOOGLE_SHEETS_SPREADSHEET_ID")
+    print(f"[DEBUG] Spreadsheet ID loaded: {spreadsheet_id[:20] if spreadsheet_id else 'NOT FOUND'}...")
+    print(f"[DEBUG] .env file path: {env_path}")
+    print(f"[DEBUG] .env file exists: {env_path.exists()}")
+
+    print("""
+==============================================================
+  Beach Cleanup API Server (Python/FastAPI)
+  Running on: http://localhost:8000
+  Environment: """ + os.getenv("ENV", "development") + """
+  API Docs: http://localhost:8000/docs
+  Health Check: http://localhost:8000/health
+==============================================================
+    """)
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Close database connection on shutdown"""
+    await db_manager.close()
+    print("\nShutting down gracefully...")
+
+# ============================================================================
+# Health Check Endpoint
+# ============================================================================
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "ok",
+        "timestamp": datetime.now().isoformat()
+    }
+
+# ============================================================================
+# API Routes
+# ============================================================================
+
+# Include all route modules
+app.include_router(auth_routes.router)
+app.include_router(posts_routes.router)
+app.include_router(events_routes.router)
+
+# 404 handler for undefined routes
+@app.get("/{full_path:path}")
+async def catch_all(full_path: str):
+    """Catch all undefined routes"""
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={"error": "Route not found"}
+    )

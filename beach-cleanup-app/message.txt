@@ -1,0 +1,122 @@
+Here is a comprehensive API structure for your team, designed for a social media app focused on beach/ocean cleanup volunteering.
+
+This structure is split into two parts:
+1.  **Your Application API:** The core endpoints for managing users, events, and social posts.
+2.  **External Data API:** Endpoints that *your server* calls to fetch and simplify data from public APIs. This is crucial for security (hiding your API keys) and performance (caching).
+
+### Recommended Public APIs
+
+Here are the most beneficial public APIs to integrate, along with *why* they are useful for your app:
+
+1.  **NOAA Tides & Currents API:**
+    * **Use:** Event Planning.
+    * **Benefit:** Allows cleanup organizers to plan events during **low tide**. This is a massive feature, as it exposes the most beach area for cleaning.
+    * **Search:** `NOAA Tides and Currents API`
+
+2.  **EPA Water Quality Portal (WQP) / BEACON API:**
+    * **Use:** Safety & Problem Identification.
+    * **Benefit:** Your app can automatically warn users if a beach has a **high bacteria advisory** (e.g., from sewage overflow). This is a critical safety feature.
+    * **Search:** `EPA BEACON API beach advisories`, `USGS Water Quality Data API`
+
+3.  **NOAA Marine Debris Monitoring (MDMAP) Data:**
+    * **Use:** Problem Discovery. This is a database, not a real-time API.
+    * **Benefit:** You can pre-load this data to create a "hotspot" map, showing users *which* beaches have historically reported the most debris. This helps organizers target high-impact areas.
+    * **Search:** `NOAA marine debris database`, `Marine Debris Tracker open data`
+
+---
+
+### API Endpoint Structure (RESTful)
+
+This is the "contract" your Android team can build against. All endpoints are prefixed with `/api/v1`.
+
+#### 1. Authentication (`/auth`)
+* `POST /auth/register`
+    * **Body:** `{ "username": "string", "email": "string", "password": "string" }`
+    * **Response (201):** `{ "token": "jwt.token.here", "user": { ... } }`
+* `POST /auth/login`
+    * **Body:** `{ "email": "string", "password": "string" }`
+    * **Response (200):** `{ "token": "jwt.token.here", "user": { ... } }`
+
+#### 2. Users (`/users`)
+* `GET /users/me`
+    * **Auth:** Required (Token)
+    * **Action:** Gets the profile for the currently logged-in user.
+    * **Response (200):** `{ "userId": "...", "username": "...", "bio": "...", "eventsOrganized": 3, "eventsAttended": 12 }`
+* `PATCH /users/me`
+    * **Auth:** Required (Token)
+    * **Action:** Updates the logged-in user's profile.
+    * **Body:** `{ "bio": "New bio text", "profilePictureUrl": "..." }`
+* `GET /users/{userId}`
+    * **Auth:** Public
+    * **Action:** Gets the public profile for a specific user.
+    * **Response (200):** `{ "username": "...", "bio": "...", "eventsOrganized": 3 }`
+
+#### 3. Cleanup Events (`/events`)
+* `GET /events`
+    * **Auth:** Public
+    * **Action:** Gets a list of all upcoming cleanup events.
+    * **Query Params:** `?lat=...&lon=...&radius_km=25` (to find events nearby) or `?organizer_id=...`
+    * **Response (200):** `[ { "eventId": "...", "eventName": "...", "date": "...", "lat": "...", "lon": "..." }, ... ]`
+* `POST /events`
+    * **Auth:** Required (Token)
+    * **Action:** Creates a new cleanup event.
+    * **Body:** `{ "eventName": "...", "description": "...", "date": "...", "lat": "...", "lon": "...", "address": "..." }`
+    * **Response (201):** `{ "eventId": "...", ... }`
+* `GET /events/{eventId}`
+    * **Auth:** Public
+    * **Action:** Gets the full details for one event, including a list of attendees.
+    * **Response (200):** `{ "eventId": "...", "eventName": "...", "organizer": { "userId": "...", "username": "..." }, "attendees": [ { "userId": "...", "username": "..." } ], ... }`
+* `POST /events/{eventId}/join`
+    * **Auth:** Required (Token)
+    * **Action:** RSVPs the current user for the event.
+* `DELETE /events/{eventId}/leave`
+    * **Auth:** Required (Token)
+    * **Action:** Removes the current user's RSVP.
+* `DELETE /events/{eventId}`
+    * **Auth:** Required (Token, must be event organizer)
+    * **Action:** Cancels/deletes an event.
+
+#### 4. Social Feed & Posts (`/posts`)
+* `GET /feed`
+    * **Auth:** Required (Token)
+    * **Action:** Gets a personalized feed (e.g., posts from users you follow or events you've joined).
+    * **Response (200):** `[ { "postId": "...", "author": { "username": "..." }, "text": "...", "imageUrl": "...", "likes": 12, "comments": 3 }, ... ]`
+* `POST /posts`
+    * **Auth:** Required (Token)
+    * **Action:** Creates a new post.
+    * **Body:** `{ "text": "We collected 20 bags of trash!", "imageUrl": "...", "eventId": "..." }` (Optionally tag an event)
+* `GET /events/{eventId}/posts`
+    * **Auth:** Public
+    * **Action:** Gets all posts associated with a specific cleanup event.
+* `POST /posts/{postId}/like`
+    * **Auth:** Required (Token)
+    * **Action:** Likes (or unlikes) a post.
+* `GET /posts/{postId}/comments`
+    * **Auth:** Public
+    * **Action:** Gets all comments for a specific post.
+* `POST /posts/{postId}/comments`
+    * **Auth:** Required (Token)
+    * **Action:** Adds a comment to a post.
+    * **Body:** `{ "text": "Great job everyone!" }`
+
+#### 5. External Data (`/data`)
+These are your server's "proxy" endpoints. The app calls these, and your server calls the public APIs.
+
+* `GET /data/tides`
+    * **Auth:** Public
+    * **Action:** Gets tide predictions for event planning.
+    * **Query Params:** `?lat=...&lon=...&date=...`
+    * **Your Server Does:** Calls the **NOAA Tides & Currents API**.
+    * **Response (200):** `{ "date": "...", "predictions": [ { "type": "Low", "time": "8:32 AM" }, { "type": "High", "time": "2:45 PM" } ] }` (You simplify the complex NOAA response)
+* `GET /data/water-quality`
+    * **Auth:** Public
+    * **Action:** Gets the latest water quality advisory for a location.
+    * **Query Params:** `?lat=...&lon=...`
+    * **Your Server Does:** Calls the **EPA/USGS Water Quality API**.
+    * **Response (200):** `{ "status": "ADVISORY", "message": "High bacteria count reported on Oct 24. Avoid contact.", "source": "EPA BEACON" }`
+* `GET /data/debris-hotspots`
+    * **Auth:** Public
+    * **Action:** Gets known debris concentration areas from your pre-loaded database.
+    * **Query Params:** `?lat=...&lon=...&radius_km=50`
+    * **Your Server Does:** Queries your *own database* (which you populated from **MDMAP** data).
+    * **Response (200):** `[ { "location": "...", "debrisScore": 8.5, "lat": "...", "lon": "..." }, ... ]`

@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { AppProvider } from './contexts/AppContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navigation from './components/layout/Navigation';
 import { LoadingScreen } from './components/ui';
@@ -26,25 +27,27 @@ const Register = lazy(() => import('./pages/Register'));
 function App() {
   return (
     <ErrorBoundary>
-      <AppProvider>
-        <AuthProvider>
-          <Router>
-            <div className="min-h-screen bg-gray-50">
-              <Navigation />
-              <Suspense fallback={<LoadingScreen message="Loading page..." />}>
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/events" element={<Events />} />
-                  <Route path="/groups" element={<Groups />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                </Routes>
-              </Suspense>
-            </div>
-          </Router>
-        </AuthProvider>
-      </AppProvider>
+      <ThemeProvider>
+        <AppProvider>
+          <AuthProvider>
+            <Router>
+              <div className="min-h-screen transition-colors" style={{backgroundColor: '#F3F3E0'}}>
+                <Navigation />
+                <Suspense fallback={<LoadingScreen message="Loading page..." />}>
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/events" element={<Events />} />
+                    <Route path="/groups" element={<Groups />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                  </Routes>
+                </Suspense>
+              </div>
+            </Router>
+          </AuthProvider>
+        </AppProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
