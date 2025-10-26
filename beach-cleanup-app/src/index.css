@@ -118,6 +118,45 @@ code {
   }
 }
 
+@keyframes bubble-rise-1 {
+  0% {
+    transform: translateY(0px);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-400px);
+    opacity: 0;
+  }
+}
+
+@keyframes bubble-rise-2 {
+  0% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-200px) translateX(15px);
+  }
+  100% {
+    transform: translateY(-500px) translateX(0px);
+    opacity: 0;
+  }
+}
+
+@keyframes bubble-rise-3 {
+  0% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-250px) translateX(-10px);
+  }
+  100% {
+    transform: translateY(-450px) translateX(0px);
+    opacity: 0;
+  }
+}
+
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
@@ -136,6 +175,18 @@ code {
 
 .animate-swim-left {
   animation: swim-left 30s linear infinite;
+}
+
+.animate-bubble-1 {
+  animation: bubble-rise-1 8s ease-in infinite;
+}
+
+.animate-bubble-2 {
+  animation: bubble-rise-2 10s ease-in infinite;
+}
+
+.animate-bubble-3 {
+  animation: bubble-rise-3 12s ease-in infinite;
 }
 
 /* Polaroid Post Styling */
