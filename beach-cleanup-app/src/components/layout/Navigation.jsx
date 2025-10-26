@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Users, User, Waves, LogIn, UserPlus } from 'lucide-react';
+import { Home, Calendar, Image, Users, User, Waves, LogIn, UserPlus } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 /**
@@ -17,6 +17,7 @@ const Navigation = () => {
   const navLinks = [
     { path: '/', label: 'Dashboard', icon: Home },
     { path: '/events', label: 'Events', icon: Calendar },
+    { path: '/posts', label: 'Posts', icon: Image },
     { path: '/groups', label: 'Groups', icon: Users },
   ];
 

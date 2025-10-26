@@ -193,3 +193,206 @@ export const mockAchievements = [
     target: 50,
   },
 ];
+
+export const mockPosts = [
+  {
+    id: 1,
+    author: {
+      id: '2',
+      name: 'Sarah Johnson',
+      avatar: null,
+    },
+    caption: 'Amazing morning at Venice Beach! Collected 45 lbs of trash with the Ocean Warriors team. Every piece counts! 🌊♻️',
+    media: [
+      {
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1621451537084-482c73073a0f?w=800&auto=format',
+        alt: 'Beach cleanup in action',
+      },
+    ],
+    location: 'Venice Beach, CA',
+    likes: 124,
+    likedByUser: false,
+    comments: [
+      {
+        id: 1,
+        author: {
+          id: '3',
+          name: 'Mike Chen',
+          avatar: null,
+        },
+        text: 'Great work! Wish I could have joined you today',
+        timestamp: '2 hours ago',
+      },
+      {
+        id: 2,
+        author: {
+          id: '1',
+          name: 'Alex Rivera',
+          avatar: null,
+        },
+        text: 'Amazing effort! Keep it up 💪',
+        timestamp: '1 hour ago',
+      },
+    ],
+    timestamp: '3 hours ago',
+    createdAt: '2025-10-25T09:00:00Z',
+  },
+  {
+    id: 2,
+    author: {
+      id: '4',
+      name: 'Emma Davis',
+      avatar: null,
+    },
+    caption: 'Family cleanup day was a huge success! Teaching the kids about ocean conservation. They collected more trash than me! 😊🏖️',
+    media: [
+      {
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?w=800&auto=format',
+        alt: 'Family beach cleanup',
+      },
+      {
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1591856419248-fce59d1638d0?w=800&auto=format',
+        alt: 'Kids helping with cleanup',
+      },
+    ],
+    location: 'Santa Monica Beach',
+    likes: 203,
+    likedByUser: true,
+    comments: [
+      {
+        id: 3,
+        author: {
+          id: '5',
+          name: 'David Lee',
+          avatar: null,
+        },
+        text: 'This is so heartwarming! Great job teaching them young',
+        timestamp: '4 hours ago',
+      },
+    ],
+    timestamp: '6 hours ago',
+    createdAt: '2025-10-25T06:00:00Z',
+  },
+  {
+    id: 3,
+    author: {
+      id: '6',
+      name: 'Ocean Warriors',
+      avatar: null,
+    },
+    caption: 'Check out this time-lapse of our beach transformation! Before and after shots show the incredible impact we made together. 🌊✨',
+    media: [
+      {
+        type: 'video',
+        url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+        thumbnail: 'https://images.unsplash.com/photo-1583675467814-e408c8a8bfbf?w=800&auto=format',
+        alt: 'Beach cleanup timelapse',
+      },
+    ],
+    location: 'Malibu Shores',
+    likes: 456,
+    likedByUser: true,
+    comments: [
+      {
+        id: 4,
+        author: {
+          id: '7',
+          name: 'Lisa Park',
+          avatar: null,
+        },
+        text: 'Wow! The difference is incredible',
+        timestamp: '1 day ago',
+      },
+      {
+        id: 5,
+        author: {
+          id: '8',
+          name: 'James Wilson',
+          avatar: null,
+        },
+        text: 'Proud to be part of this team!',
+        timestamp: '1 day ago',
+      },
+      {
+        id: 6,
+        author: {
+          id: '1',
+          name: 'Alex Rivera',
+          avatar: null,
+        },
+        text: 'This is inspiring! When is the next cleanup?',
+        timestamp: '20 hours ago',
+      },
+    ],
+    timestamp: '1 day ago',
+    createdAt: '2025-10-24T10:00:00Z',
+  },
+  {
+    id: 4,
+    author: {
+      id: '9',
+      name: 'Carlos Rodriguez',
+      avatar: null,
+    },
+    caption: 'Found some interesting things during today\'s cleanup! Including this message in a bottle from 2019. 📝🍾',
+    media: [
+      {
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1584464367916-f8e0aaa83e3c?w=800&auto=format',
+        alt: 'Message in a bottle',
+      },
+    ],
+    location: 'Laguna Beach',
+    likes: 89,
+    likedByUser: false,
+    comments: [],
+    timestamp: '2 days ago',
+    createdAt: '2025-10-23T14:30:00Z',
+  },
+  {
+    id: 5,
+    author: {
+      id: '10',
+      name: 'Youth for Clean Seas',
+      avatar: null,
+    },
+    caption: 'Our student volunteers made an incredible impact this weekend! 156 participants, 340 lbs of trash collected. The future is bright! 🌟',
+    media: [
+      {
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1618477247222-acbdb0e159b3?w=800&auto=format',
+        alt: 'Youth volunteers at beach',
+      },
+      {
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=800&auto=format',
+        alt: 'Group photo of volunteers',
+      },
+      {
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=800&auto=format',
+        alt: 'Collected trash bags',
+      },
+    ],
+    location: 'Newport Beach',
+    likes: 312,
+    likedByUser: false,
+    comments: [
+      {
+        id: 7,
+        author: {
+          id: '11',
+          name: 'Rachel Green',
+          avatar: null,
+        },
+        text: 'So proud of these kids! 💙',
+        timestamp: '3 days ago',
+      },
+    ],
+    timestamp: '3 days ago',
+    createdAt: '2025-10-22T11:00:00Z',
+  },
+];

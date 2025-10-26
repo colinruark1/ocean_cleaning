@@ -10,6 +10,7 @@ import './App.css';
 // Lazy load pages for better performance (code splitting)
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Events = lazy(() => import('./pages/Events'));
+const Posts = lazy(() => import('./pages/Posts'));
 const Groups = lazy(() => import('./pages/Groups'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Login = lazy(() => import('./pages/Login'));
@@ -35,6 +36,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/events" element={<Events />} />
+                  <Route path="/posts" element={<Posts />} />
                   <Route path="/groups" element={<Groups />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/login" element={<Login />} />

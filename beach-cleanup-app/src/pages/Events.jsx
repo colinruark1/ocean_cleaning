@@ -241,7 +241,6 @@ const Events = () => {
             events={filteredEvents}
             userLocation={userLocation}
             onJoinEvent={handleJoinEvent}
-            apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
           />
         </div>
       )}

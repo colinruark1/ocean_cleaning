@@ -2,18 +2,19 @@ import { useState, useCallback, useMemo } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import { MapPin, Calendar, Users, Clock } from 'lucide-react';
 import { formatDate, formatDistance } from '../utils/helpers';
+import { getGoogleMapsApiKey } from '../config/maps';
 import { Button } from './ui';
 
 /**
  * EventsMap Component
  * Displays cleanup events on Google Maps with markers and info windows
  */
-const EventsMap = ({ events, userLocation, onJoinEvent, apiKey }) => {
+const EventsMap = ({ events, userLocation, onJoinEvent }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [map, setMap] = useState(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: apiKey || '',
+    googleMapsApiKey: getGoogleMapsApiKey(),
   });
 
   // Default center (Santa Monica if no user location)

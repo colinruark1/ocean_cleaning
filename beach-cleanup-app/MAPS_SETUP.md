@@ -1,10 +1,23 @@
 # Google Maps Integration Setup Guide
 
-This guide will help you set up Google Maps for the OceanClean app.
+This guide will help you set up Google Maps for the OceanClean app to work on **all devices**.
 
-## Getting Your Google Maps API Key
+## Understanding the "For Development Purposes Only" Issue
 
-### 1. Create a Google Cloud Project
+The dark map with watermark appears when:
+1. Your API key has restrictions that don't match the requesting device/domain
+2. Your API key has exceeded its quota
+3. Your API key doesn't have the right APIs enabled
+
+## Solution: Platform-Specific API Keys
+
+You need **different API keys** for different platforms (Web vs Android) OR a single unrestricted key.
+
+---
+
+## Option 1: Multiple API Keys (Most Secure - RECOMMENDED)
+
+### Step 1: Create a Google Cloud Project
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Sign in with your Google account
@@ -12,47 +25,129 @@ This guide will help you set up Google Maps for the OceanClean app.
 4. Name your project (e.g., "OceanClean App")
 5. Click "Create"
 
-### 2. Enable Required APIs
+### Step 2: Enable Required APIs
 
 1. In the Google Cloud Console, go to **APIs & Services** → **Library**
 2. Search for and enable the following APIs:
    - **Maps JavaScript API** (required for map display)
    - **Geocoding API** (optional, for address lookups)
 
-### 3. Create API Credentials
+### Step 3: Create API Key for Web
 
 1. Go to **APIs & Services** → **Credentials**
 2. Click **+ CREATE CREDENTIALS** → **API key**
-3. Copy the API key that's generated
-4. Click **Edit API key** to restrict it (recommended for production)
+3. Copy the API key (save it as "Web Key")
+4. Click **Edit API key** to configure:
 
-### 4. Restrict Your API Key (Recommended)
+**API Restrictions:**
+- Select **Restrict key**
+- Check: **Maps JavaScript API**
 
-For development:
-- Under "Application restrictions", select "HTTP referrers"
-- Add: `http://localhost:5173/*` (for web development)
+**Application Restrictions:**
+- Select **HTTP referrers (web sites)**
+- Add these referrers:
+  ```
+  http://localhost:5173/*
+  http://localhost:*/*
+  http://127.0.0.1:*/*
+  https://yourdomain.com/*
+  ```
 
-For production:
-- Add your production domain
+5. Click **Save**
 
-For Android app:
-- Under "Application restrictions", select "Android apps"
-- Add your app's package name: `com.oceanclean.app`
-- Add your SHA-1 certificate fingerprint (get this from Android Studio)
+### Step 4: Create API Key for Android
 
-### 5. Configure the App
+1. Click **+ CREATE CREDENTIALS** → **API key** (again)
+2. Copy the API key (save it as "Android Key")
+3. Click **Edit API key** to configure:
+
+**API Restrictions:**
+- Select **Restrict key**
+- Check: **Maps JavaScript API**
+
+**Application Restrictions:**
+- Select **Android apps**
+- Click **+ Add an item**
+- Package name: `com.oceanclean.app` (or your actual package name)
+- SHA-1 certificate fingerprint: See below for how to get this
+
+5. Click **Save**
+
+#### Getting Your Android SHA-1 Fingerprint:
+
+For **debug builds** (development):
+```bash
+cd beach-cleanup-app/android
+./gradlew signingReport
+```
+
+Look for the **SHA-1** under `Variant: debug`
+
+For **release builds** (production):
+```bash
+keytool -list -v -keystore path/to/your-release-key.keystore -alias your-key-alias
+```
+
+### Step 5: Configure the App
 
 1. Copy `.env.example` to `.env`:
    ```bash
    cp .env.example .env
    ```
 
-2. Open `.env` and add your API key:
+2. Open `.env` and add **BOTH** API keys:
    ```
-   VITE_GOOGLE_MAPS_API_KEY=AIzaSy...your_actual_key_here
+   # Web API Key (with HTTP referrer restrictions)
+   VITE_GOOGLE_MAPS_API_KEY_WEB=AIzaSy...your_web_key_here
+
+   # Android API Key (with Android app restrictions)
+   VITE_GOOGLE_MAPS_API_KEY_ANDROID=AIzaSy...your_android_key_here
    ```
 
 3. **Important**: Never commit `.env` to version control!
+
+The app will automatically use the correct key based on the platform it's running on.
+
+---
+
+## Option 2: Single Unrestricted Key (Quick but Less Secure)
+
+**Use this for quick testing only. Not recommended for production!**
+
+### Step 1-2: Same as Option 1
+
+Follow steps 1-2 from Option 1 above.
+
+### Step 3: Create Unrestricted API Key
+
+1. Go to **APIs & Services** → **Credentials**
+2. Click **+ CREATE CREDENTIALS** → **API key**
+3. Copy the API key
+4. Click **Edit API key**
+
+**API Restrictions:**
+- Select **Restrict key**
+- Check: **Maps JavaScript API** (still restrict to only Maps API)
+
+**Application Restrictions:**
+- Select **None** (⚠️ Not recommended for production)
+
+5. Click **Save**
+
+### Step 4: Configure the App
+
+1. Open your `.env` file
+2. Add the unrestricted key:
+   ```
+   VITE_GOOGLE_MAPS_API_KEY=AIzaSy...your_key_here
+   ```
+
+This key will work everywhere but has security risks:
+- Anyone can use your key if they find it
+- You may exceed your quota faster
+- Google may flag it as insecure
+
+**IMPORTANT**: Set up billing alerts and usage quotas to prevent unexpected charges!
 
 ## Testing the Integration
 
