@@ -2,6 +2,8 @@
  * Image Upload Service
  * Handles image compression, validation, and upload to Firebase Storage
  */
+import { storage } from './firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // Maximum file size in bytes (5MB)
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -146,12 +148,12 @@ export const generateFilename = (userId, type, extension) => {
 };
 
 /**
- * Uploads an image (converts to base64 data URL for now)
+ * Uploads an image to Firebase Storage
  * @param {File} file - The file to upload
  * @param {string} userId - User ID
  * @param {string} type - Image type (profile, post, banner)
  * @param {Function} onProgress - Progress callback (optional)
- * @returns {Promise<string>} - Data URL of the image
+ * @returns {Promise<string>} - Public URL of the uploaded image
  */
 export const uploadImage = async (file, userId, type = 'post', onProgress = null) => {
   try {
@@ -186,40 +188,58 @@ export const uploadImage = async (file, userId, type = 'post', onProgress = null
     const compressionRatio = Math.round((compressedBlob.size / file.size) * 100);
     console.log(`[Upload] Compression complete - Original: ${file.size} bytes → Compressed: ${compressedBlob.size} bytes (${compressionRatio}%)`);
 
-    // Convert compressed blob to data URL
-    const dataUrl = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target.result;
+    // Check if Firebase Storage is available
+    if (!storage) {
+      console.warn('[Upload] ⚠️ Firebase Storage not available, falling back to data URL');
+      // Fallback to data URL if Firebase is not configured
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target.result;
+          if (!result || typeof result !== 'string') {
+            reject(new Error('Invalid data URL'));
+            return;
+          }
+          console.log(`[Upload] ✓ Data URL created - Length: ${result.length} chars`);
+          resolve(result);
+        };
+        reader.onerror = () => reject(new Error('Failed to read compressed image'));
+        reader.readAsDataURL(compressedBlob);
+      });
 
-        // Validate that the data URL is valid
-        if (!result || typeof result !== 'string') {
-          console.error('[Upload] ✗ Invalid data URL: not a string');
-          reject(new Error('Invalid data URL: not a string'));
-          return;
-        }
+      if (onProgress) onProgress(100);
+      return dataUrl;
+    }
 
-        if (!result.startsWith('data:image/')) {
-          console.error('[Upload] ✗ Invalid data URL: does not start with data:image/');
-          reject(new Error('Invalid data URL: does not start with data:image/'));
-          return;
-        }
+    if (onProgress) onProgress(70);
 
-        console.log(`[Upload] ✓ Data URL created - Length: ${result.length} chars (${Math.round(result.length / 1024)}KB)`);
-        console.log(`[Upload] ✓ Data URL format: ${result.substring(0, 50)}...`);
-        resolve(result);
-      };
-      reader.onerror = () => {
-        console.error('[Upload] ✗ Failed to read compressed image');
-        reject(new Error('Failed to read compressed image'));
-      };
-      reader.readAsDataURL(compressedBlob);
+    // Generate filename
+    const extension = file.name.split('.').pop() || 'jpg';
+    const filename = generateFilename(userId, type, extension);
+
+    console.log(`[Upload] Uploading to Firebase Storage: ${filename}`);
+
+    // Create a reference to the file location
+    const storageRef = ref(storage, filename);
+
+    // Upload the compressed blob
+    const snapshot = await uploadBytes(storageRef, compressedBlob, {
+      contentType: 'image/jpeg',
     });
+
+    console.log(`[Upload] ✓ File uploaded to Firebase Storage`);
+
+    if (onProgress) onProgress(90);
+
+    // Get the public download URL
+    const downloadURL = await getDownloadURL(snapshot.ref);
+
+    console.log(`[Upload] ✓ Public URL obtained: ${downloadURL}`);
 
     if (onProgress) onProgress(100);
 
     console.log(`[Upload] ✓ Upload complete for ${type}`);
-    return dataUrl;
+    return downloadURL;
   } catch (error) {
     console.error('[Upload] ✗ Upload error:', error);
     throw error;

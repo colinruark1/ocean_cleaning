@@ -43,7 +43,9 @@ const CleanupPost = ({ post }) => {
     }
   };
 
-  const handleImageError = () => {
+  const handleImageError = (e) => {
+    console.error(`❌ Failed to load image for post ${post.id}:`, post.imageUrl);
+    console.error('Image error event:', e);
     setImageError(true);
     setImageLoading(false);
   };
