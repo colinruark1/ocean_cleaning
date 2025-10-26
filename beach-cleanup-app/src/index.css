@@ -1,7 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  /* Custom Ocean Lovers Palette */
+  /* Light Mode Color Scheme */
+  --color-primary: #1C6EA4;
+  --color-secondary: #33A1E0;
+  --color-accent: #FFF9AF;
+  --color-dark: #FFF9AF;
+
+  /* Legacy colors for backwards compatibility */
   --color-cream: #F3F3E0;
   --color-ocean-blue: #27548A;
   --color-deep-ocean: #183B4E;
@@ -18,9 +24,29 @@
   --color-ocean-700: #183B4E;
   --color-ocean-800: #122d3a;
   --color-ocean-900: #0c1f27;
+
+  /* Background and text colors for light mode */
+  --color-bg-primary: #FFF9AF;
+  --color-bg-secondary: #FFF9AF;
+  --color-text-primary: #154D71;
+  --color-text-secondary: #1C6EA4;
 }
 
 @variant dark (&:is(.dark *));
+
+/* Dark Mode Color Scheme */
+.dark {
+  --color-primary: #2E8A99;
+  --color-secondary: #1F6E8C;
+  --color-accent: #84A7A1;
+  --color-dark: #0E2954;
+
+  /* Background and text colors for dark mode */
+  --color-bg-primary: #0E2954;
+  --color-bg-secondary: #1F6E8C;
+  --color-text-primary: #84A7A1;
+  --color-text-secondary: #2E8A99;
+}
 
 body {
   margin: 0;
@@ -110,4 +136,32 @@ code {
 
 .animate-swim-left {
   animation: swim-left 30s linear infinite;
+}
+
+/* Polaroid Post Styling */
+.polaroid-container {
+  perspective: 1000px;
+}
+
+.polaroid-container:hover > div {
+  transform: rotate(0deg) scale(1.02);
+}
+
+.polaroid-container > div {
+  transition: transform 0.3s ease;
+  transform: rotate(-2deg);
+}
+
+.polaroid-container:nth-child(even) > div {
+  transform: rotate(2deg);
+}
+
+.polaroid-container:nth-child(3n) > div {
+  transform: rotate(-1deg);
+}
+
+/* Handwriting-style font for captions */
+.font-handwriting {
+  font-family: 'Kalam', 'Indie Flower', 'Patrick Hand', cursive, sans-serif;
+  font-size: 0.9rem;
 }

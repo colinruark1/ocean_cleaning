@@ -23,7 +23,7 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 shadow-sm transition-colors" style={{backgroundColor: '#183B4E', borderBottom: '1px solid #27548A'}}>
+    <nav className="sticky top-0 z-50 shadow-sm transition-colors" style={{backgroundColor: isDarkMode ? '#183B4E' : '#33A1E0', borderBottom: '1px solid #27548A'}}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo and primary nav */}

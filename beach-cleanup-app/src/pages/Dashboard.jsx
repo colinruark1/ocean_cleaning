@@ -1,9 +1,10 @@
-import { MapPin, Trash2, Users, Award, Calendar, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useActivities } from '../hooks/useActivities';
+import { Upload } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { mockStats } from '../services/mockData';
-import { Card, CardHeader, Avatar, LoadingSpinner, EmptyState, Button, StatCard } from '../components/ui';
+import { mockCleanupPosts } from '../services/mockData';
+import { fetchPosts, addPost, fetchPostsLocalStorage } from '../services/googleSheets';
+import { Button, CleanupPost, UploadPostModal } from '../components/ui';
 
 // Import ocean sprite images
 import orcaImage from '../assets/orca.png';
@@ -12,29 +13,76 @@ import whaleImage from '../assets/whale.png';
 
 /**
  * Dashboard Page
- * Shows community activity feed and user stats overview
- * Refactored with industry-standard patterns
+ * Instagram-style feed showing beach cleaning adventures
+ * Light mode design with polaroid-style posts
  */
 const Dashboard = () => {
-  const { activities, isLoading, error } = useActivities();
   const { user } = useAuth();
-  const stats = mockStats;
+  const [posts, setPosts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
-  if (error) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800">Error loading dashboard: {error}</p>
-        </div>
-      </div>
-    );
-  }
+  // Light mode colors for now
+  const colors = {
+    heroBg: 'linear-gradient(135deg, #1C6EA4 0%, #154D71 100%)',
+    heroText: '#FFF9AF',
+    bgPrimary: '#F5F5F5',
+    buttonBg: '#33A1E0',
+    buttonText: '#154D71',
+  };
+
+  // Fetch posts on component mount
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  const loadPosts = async () => {
+    setIsLoading(true);
+    try {
+      // Try to fetch from Google Sheets
+      const sheetPosts = await fetchPosts();
+
+      // If Google Sheets returns posts, use them
+      if (sheetPosts && sheetPosts.length > 0) {
+        setPosts(sheetPosts);
+      } else {
+        // Otherwise, check local storage
+        const localPosts = fetchPostsLocalStorage();
+
+        // If local storage has posts, use them
+        if (localPosts && localPosts.length > 0) {
+          setPosts(localPosts);
+        } else {
+          // Fall back to mock data
+          setPosts(mockCleanupPosts);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading posts:', error);
+      // Fall back to mock data on error
+      setPosts(mockCleanupPosts);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUploadPost = async (postData) => {
+    try {
+      const newPost = await addPost(postData);
+      // Reload posts to show the new one
+      await loadPosts();
+      return newPost;
+    } catch (error) {
+      console.error('Error uploading post:', error);
+      throw error;
+    }
+  };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{backgroundColor: colors.bgPrimary}}>
       {/* Hero Section with Ocean Gradient */}
-      <div style={{background: 'linear-gradient(135deg, #27548A 0%, #183B4E 100%)'}} className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative">
+      <div style={{background: colors.heroBg}} className="relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 relative">
           {/* Decorative ocean elements - animated sprites */}
           <div className="absolute inset-0 opacity-40 pointer-events-none overflow-hidden">
             {/* Whale swimming across top */}
@@ -57,28 +105,28 @@ const Dashboard = () => {
             <img
               src={turtleImage}
               alt="Turtle"
-              className="absolute bottom-16 right-8 sm:right-16 md:right-24 w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 object-contain animate-float-slow"
+              className="absolute bottom-10 right-8 sm:right-16 md:right-24 w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 object-contain animate-float-slow"
             />
           </div>
 
           <div className="text-center relative z-10">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 tracking-tight" style={{color: '#ffffff'}}>
               {user ? `Welcome back, ${user.name || user.username}!` : 'Welcome to OceanClean'}
             </h1>
-            <p className="text-xl sm:text-2xl text-cream max-w-3xl mx-auto leading-relaxed" style={{color: '#F3F3E0'}}>
+            <p className="text-xl sm:text-2xl max-w-3xl mx-auto leading-relaxed" style={{color: colors.heroText}}>
               {user
-                ? "Here's your impact summary and recent community activity. Together, we're making waves for cleaner oceans."
+                ? "Check out the latest beach cleaning adventures from our community!"
                 : "Join ocean lovers around the world making a difference, one cleanup at a time."}
             </p>
             {!user && (
               <div className="mt-8 flex gap-4 justify-center flex-wrap">
                 <Link to="/register">
-                  <Button size="lg" className="font-semibold px-8" style={{backgroundColor: '#DDA853', color: '#183B4E'}}>
+                  <Button size="lg" className="font-semibold px-8" style={{backgroundColor: colors.buttonBg, color: colors.buttonText}}>
                     Get Started
                   </Button>
                 </Link>
                 <Link to="/events">
-                  <Button size="lg" variant="secondary" className="font-semibold px-8 border-2" style={{borderColor: '#F3F3E0', color: '#F3F3E0', backgroundColor: 'transparent'}}>
+                  <Button size="lg" variant="secondary" className="font-semibold px-8 border-2" style={{borderColor: colors.heroText, color: colors.heroText, backgroundColor: 'transparent'}}>
                     Browse Events
                   </Button>
                 </Link>
@@ -88,117 +136,86 @@ const Dashboard = () => {
         </div>
         {/* Wave decoration */}
         <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 120" className="w-full h-12 sm:h-20">
-            <path fill="#F3F3E0" fillOpacity="1" d="M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,48C672,43,768,53,864,58.7C960,64,1056,64,1152,58.7C1248,53,1344,43,1392,37.3L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path>
+          <svg viewBox="0 0 1440 120" className="w-full h-12 sm:h-16">
+            <path fill={colors.bgPrimary} fillOpacity="1" d="M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,48C672,43,768,53,864,58.7C960,64,1056,64,1152,58.7C1248,53,1344,43,1392,37.3L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path>
           </svg>
         </div>
       </div>
 
+      {/* Main Content - Instagram-style Post Feed */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {/* Stats Overview */}
-        {user && (
-          <div className="mb-12">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl sm:text-3xl font-bold" style={{color: '#183B4E'}}>Your Impact</h2>
-              <Link to="/profile" className="text-sm font-medium hover:opacity-80 transition-opacity" style={{color: '#27548A'}}>
-                View Full Profile →
-              </Link>
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-center flex-1">
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">Community Cleanup Adventures</h2>
+              <p className="text-gray-600">Share your beach cleaning journey and inspire others!</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatCard
-                title="Total Cleanups"
-                value={stats.totalCleanups}
-                icon={<Trash2 className="h-8 w-8" />}
-                color="ocean"
-              />
-              <StatCard
-                title="Trash Collected"
-                value={stats.totalTrash}
-                icon={<Award className="h-8 w-8" />}
-                color="green"
-              />
-              <StatCard
-                title="Events Organized"
-                value={stats.eventsOrganized}
-                icon={<Calendar className="h-8 w-8" />}
-                color="purple"
-              />
-              <StatCard
-                title="Global Rank"
-                value={stats.rank}
-                icon={<TrendingUp className="h-8 w-8" />}
-                color="orange"
-              />
-            </div>
+            {user && (
+              <Button
+                onClick={() => setIsUploadModalOpen(true)}
+                className="ml-4 flex items-center gap-2"
+                style={{backgroundColor: colors.buttonBg, color: 'white'}}
+              >
+                <Upload className="h-5 w-5" />
+                <span className="hidden sm:inline">Share Post</span>
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Polaroid Post Grid */}
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+            <p className="text-gray-600 mt-4">Loading posts...</p>
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg mb-4">No posts yet. Be the first to share your cleanup adventure!</p>
+            {user && (
+              <Button
+                onClick={() => setIsUploadModalOpen(true)}
+                style={{backgroundColor: colors.buttonBg, color: 'white'}}
+              >
+                <Upload className="h-5 w-5 inline mr-2" />
+                Share Your First Post
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+            {posts.map((post) => (
+              <CleanupPost key={post.id} post={post} />
+            ))}
           </div>
         )}
 
-        {/* Activity Feed */}
-        <Card>
-          <CardHeader>
-            <h2 className="text-2xl font-bold" style={{color: '#183B4E'}}>Recent Activity</h2>
-          </CardHeader>
-
-          {isLoading ? (
-            <LoadingSpinner message="Loading activities..." />
-          ) : activities.length === 0 ? (
-            <EmptyState
-              icon={<Users className="h-12 w-12" />}
-              title="No recent activity"
-              description="Start by joining an event or creating a group to see activity here."
-            />
-          ) : (
-            <div className="divide-y" style={{borderColor: '#E5E7EB'}}>
-              {activities.map((activity) => (
-                <div key={activity.id} className="px-6 py-4 hover:bg-gray-50 transition">
-                  <div className="flex items-start space-x-4">
-                    <Avatar name={activity.user} size="md" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium" style={{color: '#183B4E'}}>
-                        {activity.user}{' '}
-                        <span className="font-normal" style={{color: '#6B7280'}}>{activity.action}</span>
-                      </p>
-                      <div className="mt-2 flex items-center space-x-4 text-sm flex-wrap" style={{color: '#6B7280'}}>
-                        <span className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          {activity.location}
-                        </span>
-                        <span className="flex items-center">
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          {activity.trash}
-                        </span>
-                        <span className="flex items-center">
-                          <Users className="h-4 w-4 mr-1" />
-                          {activity.participants} participants
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs" style={{color: '#9CA3AF'}}>{activity.time}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
         {/* Call to Action */}
-        <div className="mt-8 rounded-2xl shadow-lg p-8 text-white" style={{background: 'linear-gradient(135deg, #27548A 0%, #183B4E 100%)'}}>
-          <h3 className="text-2xl sm:text-3xl font-bold mb-4">Join a Cleanup Event Today!</h3>
-          <p className="text-lg mb-6" style={{color: '#F3F3E0'}}>
-            Connect with local ocean lovers and make a difference in your community.
+        <div className="mt-12 rounded-2xl shadow-lg p-8 text-white text-center" style={{background: colors.heroBg}}>
+          <h3 className="text-2xl sm:text-3xl font-bold mb-4">Share Your Cleanup Adventure!</h3>
+          <p className="text-lg mb-6" style={{color: colors.heroText}}>
+            Join a cleanup event and share your impact with the community.
           </p>
           <Link to="/events">
             <Button
               variant="secondary"
               size="lg"
               className="font-semibold hover:opacity-90 transition-opacity"
-              style={{backgroundColor: '#DDA853', color: '#183B4E'}}
+              style={{backgroundColor: '#ffffff', color: colors.buttonText}}
             >
               Browse Events
             </Button>
           </Link>
         </div>
       </div>
+
+      {/* Upload Post Modal */}
+      <UploadPostModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onSubmit={handleUploadPost}
+        currentUser={user}
+      />
     </div>
   );
 };
