@@ -1,4 +1,5 @@
 import { Geolocation } from '@capacitor/geolocation';
+import { Capacitor } from '@capacitor/core';
 
 /**
  * Geolocation Service
@@ -6,13 +7,27 @@ import { Geolocation } from '@capacitor/geolocation';
  */
 
 /**
+ * Check if we're running in a native mobile environment
+ * @returns {boolean}
+ */
+const isNativePlatform = () => {
+  return Capacitor.isNativePlatform();
+};
+
+/**
  * Check if location permissions are granted
  * @returns {Promise<boolean>} Whether permission is granted
  */
 export const checkLocationPermission = async () => {
   try {
-    const permission = await Geolocation.checkPermissions();
-    return permission.location === 'granted';
+    if (isNativePlatform()) {
+      const permission = await Geolocation.checkPermissions();
+      return permission.location === 'granted';
+    } else {
+      // In browser, we can't check permissions directly
+      // The permission prompt will appear when we request location
+      return true;
+    }
   } catch (error) {
     console.error('Error checking location permission:', error);
     return false;
@@ -25,8 +40,13 @@ export const checkLocationPermission = async () => {
  */
 export const requestLocationPermission = async () => {
   try {
-    const permission = await Geolocation.requestPermissions();
-    return permission.location === 'granted';
+    if (isNativePlatform()) {
+      const permission = await Geolocation.requestPermissions();
+      return permission.location === 'granted';
+    } else {
+      // In browser, permissions are requested automatically when calling getCurrentPosition
+      return true;
+    }
   } catch (error) {
     console.error('Error requesting location permission:', error);
     return false;
@@ -39,6 +59,42 @@ export const requestLocationPermission = async () => {
  */
 export const getCurrentPosition = async () => {
   try {
+    // Use browser's native Geolocation API on web (it handles permissions automatically)
+    if (!isNativePlatform() && 'geolocation' in navigator) {
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            resolve({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            });
+          },
+          (error) => {
+            console.error('Browser geolocation error:', error);
+            let errorMessage = 'Unable to get location';
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                errorMessage = 'Location permission denied. Please allow location access in your browser settings.';
+                break;
+              case error.POSITION_UNAVAILABLE:
+                errorMessage = 'Location information unavailable.';
+                break;
+              case error.TIMEOUT:
+                errorMessage = 'Location request timed out.';
+                break;
+            }
+            reject(new Error(errorMessage));
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          }
+        );
+      });
+    }
+
+    // Use Capacitor for native platforms
     // Check permission first
     const hasPermission = await checkLocationPermission();
 
@@ -61,7 +117,7 @@ export const getCurrentPosition = async () => {
     };
   } catch (error) {
     console.error('Error getting current position:', error);
-    return null;
+    throw error;
   }
 };
 

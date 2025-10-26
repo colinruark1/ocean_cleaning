@@ -10,12 +10,12 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 
-# Import routes
-from src.routes import auth_routes, posts_routes
-from src.config.database import db_manager
-
-# Load environment variables
+# Load environment variables FIRST before importing anything else
 load_dotenv()
+
+# Import routes
+from src.routes import auth_routes, posts_routes, events_routes
+from src.config.database import db_manager
 
 # Create FastAPI app
 app = FastAPI(
@@ -103,6 +103,7 @@ async def health_check():
 # Include all route modules
 app.include_router(auth_routes.router)
 app.include_router(posts_routes.router)
+app.include_router(events_routes.router)
 
 # 404 handler for undefined routes
 @app.get("/{full_path:path}")

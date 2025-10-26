@@ -219,3 +219,174 @@ export const fetchPostsLocalStorage = () => {
     return [];
   }
 };
+
+// ============================================================================
+// EVENTS - Google Sheets Integration
+// ============================================================================
+
+/**
+ * Fetch all events from Google Sheets
+ * Routes through Python backend
+ */
+export const fetchEvents = async () => {
+  try {
+    console.log('📡 Fetching events from Google Sheets via backend...');
+
+    const response = await fetch('/api/events/all');
+
+    console.log('📥 Response status:', response.status);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+      console.error('❌ Backend API Error:', errorData);
+      throw new Error(errorData.detail || 'Failed to fetch events');
+    }
+
+    const result = await response.json();
+    console.log('📊 Events data:', result);
+
+    const events = result.data || [];
+    console.log(`✅ Successfully fetched ${events.length} events from database`);
+
+    // Sort by date (newest first)
+    return events.sort((a, b) => new Date(b.date) - new Date(a.date));
+  } catch (error) {
+    console.error('❌ Error fetching events from Google Sheets:', error);
+    console.log('📦 Falling back to localStorage...');
+    return fetchEventsLocalStorage();
+  }
+};
+
+/**
+ * Add a new event to Google Sheets
+ * Routes through Python backend to avoid CORS issues
+ */
+export const addEvent = async (eventData) => {
+  try {
+    // Generate unique ID
+    const id = `event-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    const newEvent = {
+      id,
+      title: eventData.title,
+      location: eventData.location,
+      coordinates: eventData.coordinates || null,
+      date: eventData.date,
+      time: eventData.time,
+      participants: eventData.participants || 1,
+      maxParticipants: eventData.maxParticipants,
+      description: eventData.description,
+      organizer: eventData.organizer || 'You',
+      difficulty: eventData.difficulty || 'Easy',
+      imageUrl: eventData.imageUrl || '',
+      timestamp: eventData.timestamp || new Date().toISOString(),
+    };
+
+    console.log('📝 Attempting to add event to Google Sheets via backend...');
+    console.log('Event data:', newEvent);
+
+    // Use backend API endpoint (proxied through Vite)
+    const response = await fetch('/api/events/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newEvent),
+    });
+
+    console.log('📥 Response status:', response.status);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+      console.error('❌ Backend API Error:', errorData);
+      throw new Error(errorData.detail || 'Failed to add event');
+    }
+
+    const result = await response.json();
+    console.log('✅ Backend response:', result);
+
+    // Also save to localStorage as backup
+    addEventLocalStorage(newEvent);
+
+    console.log('✅ Event added successfully! Check your Google Sheet.');
+    return newEvent;
+  } catch (error) {
+    console.error('❌ Error adding event to Google Sheets:', error);
+    console.log('📦 Falling back to localStorage...');
+    // Fallback to local storage
+    const savedEvent = addEventLocalStorage(eventData);
+    return savedEvent;
+  }
+};
+
+/**
+ * Update participant count for an event
+ * Routes through Python backend to avoid CORS issues
+ */
+export const updateEventParticipants = async (eventId, newParticipantCount) => {
+  try {
+    // Use backend API endpoint (proxied through Vite)
+    const response = await fetch('/api/events/update-participants', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        eventId,
+        participants: newParticipantCount,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+      throw new Error(errorData.detail || 'Failed to update participants');
+    }
+
+    const result = await response.json();
+
+    // Also update localStorage
+    updateEventParticipantsLocalStorage(eventId, newParticipantCount);
+
+    return result;
+  } catch (error) {
+    console.error('Error updating event participants:', error);
+    return updateEventParticipantsLocalStorage(eventId, newParticipantCount);
+  }
+};
+
+// Local storage fallback functions for events
+const addEventLocalStorage = (eventData) => {
+  const events = JSON.parse(localStorage.getItem('cleanupEvents') || '[]');
+  const newEvent = {
+    ...eventData,
+    id: eventData.id || `event-${Date.now()}`,
+  };
+  events.unshift(newEvent);
+  localStorage.setItem('cleanupEvents', JSON.stringify(events));
+  return newEvent;
+};
+
+const updateEventParticipantsLocalStorage = (eventId, participants) => {
+  const events = JSON.parse(localStorage.getItem('cleanupEvents') || '[]');
+  const eventIndex = events.findIndex(e => e.id === eventId);
+
+  if (eventIndex !== -1) {
+    events[eventIndex].participants = participants;
+    localStorage.setItem('cleanupEvents', JSON.stringify(events));
+  }
+
+  return { success: true };
+};
+
+/**
+ * Fetch events from local storage (fallback when Google Sheets is unavailable)
+ */
+export const fetchEventsLocalStorage = () => {
+  try {
+    const events = JSON.parse(localStorage.getItem('cleanupEvents') || '[]');
+    return events;
+  } catch (error) {
+    console.error('Error fetching events from local storage:', error);
+    return [];
+  }
+};

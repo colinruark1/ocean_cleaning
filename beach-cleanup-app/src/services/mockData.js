@@ -68,6 +68,7 @@ export const mockEvents = [
     description: 'Join us for a morning of cleaning our beautiful beach!',
     organizer: 'Ocean Warriors',
     difficulty: 'Easy',
+    imageUrl: 'https://picsum.photos/seed/event1/600/400',
   },
   {
     id: 2,
@@ -81,6 +82,7 @@ export const mockEvents = [
     description: 'Early morning cleanup focusing on marine debris.',
     organizer: 'Save Our Seas',
     difficulty: 'Moderate',
+    imageUrl: 'https://picsum.photos/seed/event2/600/400',
   },
   {
     id: 3,
@@ -94,6 +96,7 @@ export const mockEvents = [
     description: 'Family-friendly event with activities for kids!',
     organizer: 'Clean Coast Initiative',
     difficulty: 'Easy',
+    imageUrl: '',
   },
 ];
 
