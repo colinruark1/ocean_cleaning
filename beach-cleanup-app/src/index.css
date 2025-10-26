@@ -25,41 +25,117 @@
   --color-ocean-800: #122d3a;
   --color-ocean-900: #0c1f27;
 
-  /* Background and text colors for light mode */
+  /* Light Mode - Background and text colors */
   --color-bg-primary: #FFF9AF;
-  --color-bg-secondary: #FFF9AF;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-tertiary: #F3F3E0;
   --color-text-primary: #154D71;
   --color-text-secondary: #1C6EA4;
+  --color-text-tertiary: #666666;
+  --color-border: #E5E7EB;
+  --color-hover: #F0F4F8;
+  --color-shadow: rgba(0, 0, 0, 0.1);
 }
 
 @variant dark (&:is(.dark *));
 
 /* Dark Mode Color Scheme */
 .dark {
-  --color-primary: #2E8A99;
-  --color-secondary: #1F6E8C;
+  --color-primary: #4A9FB5;
+  --color-secondary: #2E8A99;
   --color-accent: #84A7A1;
   --color-dark: #0E2954;
 
-  /* Background and text colors for dark mode */
-  --color-bg-primary: #0E2954;
-  --color-bg-secondary: #1F6E8C;
-  --color-text-primary: #84A7A1;
-  --color-text-secondary: #2E8A99;
+  /* Dark Mode - Background and text colors */
+  --color-bg-primary: #0F1419;
+  --color-bg-secondary: #1A2332;
+  --color-bg-tertiary: #242E3F;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #E0E0E0;
+  --color-text-tertiary: #B0B0B0;
+  --color-border: #374151;
+  --color-hover: #2D3A4D;
+  --color-shadow: rgba(0, 0, 0, 0.3);
 }
 
 body {
   margin: 0;
+  padding: 0;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Smooth theme transitions */
+* {
+  @apply transition-colors duration-300;
+}
+
+/* Override transition for performance-critical elements */
+input, textarea, select {
+  @apply transition-colors duration-200;
+}
+
+/* Dark Mode Text Color Overrides - Make all gray/dark text white in dark mode */
+.dark .text-gray-400 { @apply text-gray-400; }
+.dark .text-gray-500 { @apply text-gray-400; }
+.dark .text-gray-600 { @apply text-gray-300; }
+.dark .text-gray-700 { @apply text-gray-200; }
+.dark .text-gray-800 { @apply text-white; }
+.dark .text-gray-900 { @apply text-white; }
+
+/* Dark mode overrides for blue text (make it lighter/white) */
+.dark .text-blue-50 { @apply bg-blue-900 text-white; }
+.dark .text-blue-500 { @apply text-blue-300; }
+.dark .text-blue-700 { @apply text-blue-300; }
+.dark .text-blue-800 { @apply text-white; }
+
+/* Dark mode overrides for backgrounds with gray */
+.dark .bg-gray-50 { @apply bg-gray-900; }
+.dark .bg-gray-100 { @apply bg-gray-800; }
+.dark .bg-gray-200 { @apply bg-gray-700; }
+
+/* Dark mode text colors for semantic colors */
+.dark .text-ocean-600 { @apply text-ocean-300; }
+.dark .text-red-600 { @apply text-red-400; }
+.dark .text-red-700 { @apply text-red-400; }
+.dark .text-red-800 { @apply text-red-300; }
+.dark .text-green-600 { @apply text-green-400; }
+.dark .text-yellow-600 { @apply text-yellow-400; }
+.dark .text-yellow-800 { @apply text-yellow-300; }
+.dark .text-orange-600 { @apply text-orange-400; }
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary);
 }
 
 /* Floating and swimming animations for ocean creatures */

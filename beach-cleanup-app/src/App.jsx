@@ -31,7 +31,7 @@ function App() {
         <AppProvider>
           <AuthProvider>
             <Router>
-              <div className="min-h-screen transition-colors" style={{backgroundColor: '#F3F3E0'}}>
+              <div className="min-h-screen transition-colors duration-300 bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]">
                 <Navigation />
                 <Suspense fallback={<LoadingScreen message="Loading page..." />}>
                   <Routes>

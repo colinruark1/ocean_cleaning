@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Upload } from 'lucide-react';
+import { Upload, MapPin, Loader } from 'lucide-react';
 import Modal, { ModalBody, ModalFooter } from './Modal';
 import Button from './Button';
 import Input, { Textarea } from './Input';
@@ -21,6 +21,7 @@ const UploadPostModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errors, setErrors] = useState({});
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleInputChange = (e) => {
@@ -37,6 +38,75 @@ const UploadPostModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
         [name]: ''
       }));
     }
+  };
+
+  const handleGetLocation = async () => {
+    if (!navigator.geolocation) {
+      setErrors(prev => ({
+        ...prev,
+        location: 'Geolocation is not supported by your browser'
+      }));
+      return;
+    }
+
+    setIsGettingLocation(true);
+    setErrors(prev => ({
+      ...prev,
+      location: ''
+    }));
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+
+          // Use reverse geocoding to get location name
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+
+          if (!response.ok) {
+            throw new Error('Failed to get location name');
+          }
+
+          const data = await response.json();
+          const locationName = data.address?.city || data.address?.town || data.address?.county || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+
+          setFormData(prev => ({
+            ...prev,
+            location: locationName
+          }));
+        } catch (error) {
+          console.error('Geocoding error:', error);
+          // Fallback to coordinates
+          const { latitude, longitude } = position.coords;
+          setFormData(prev => ({
+            ...prev,
+            location: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+          }));
+        } finally {
+          setIsGettingLocation(false);
+        }
+      },
+      (error) => {
+        setIsGettingLocation(false);
+        console.error('Geolocation error:', error);
+
+        let errorMessage = 'Could not get your location';
+        if (error.code === 1) {
+          errorMessage = 'Location permission denied. Please enable it in your browser settings.';
+        } else if (error.code === 2) {
+          errorMessage = 'Location unavailable. Please try again.';
+        } else if (error.code === 3) {
+          errorMessage = 'Location request timed out. Please try again.';
+        }
+
+        setErrors(prev => ({
+          ...prev,
+          location: errorMessage
+        }));
+      }
+    );
   };
 
   const handleFileSelect = async (e) => {
@@ -273,9 +343,29 @@ const UploadPostModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
 
             {/* Location Input */}
             <div>
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-                Location *
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                  Location *
+                </label>
+                <button
+                  type="button"
+                  onClick={handleGetLocation}
+                  disabled={isGettingLocation}
+                  className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGettingLocation ? (
+                    <>
+                      <Loader className="h-3 w-3 animate-spin" />
+                      Getting...
+                    </>
+                  ) : (
+                    <>
+                      <MapPin className="h-3 w-3" />
+                      Use My Location
+                    </>
+                  )}
+                </button>
+              </div>
               <Input
                 id="location"
                 name="location"

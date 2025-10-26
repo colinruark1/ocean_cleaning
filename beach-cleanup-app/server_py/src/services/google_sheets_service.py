@@ -35,7 +35,7 @@ class GoogleSheetsService:
                 # Default location in server_py directory
                 service_account_file = os.path.join(
                     os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-                    "ocean-cleanup-services-account.json"
+                    "ocean-cleanup-service-account.json"
                 )
 
             if os.path.exists(service_account_file):

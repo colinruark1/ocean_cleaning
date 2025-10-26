@@ -13,13 +13,16 @@ const Card = ({
   onClick,
   ...props
 }) => {
-  const hoverStyles = hoverable ? 'hover:shadow-lg transition-shadow duration-200 cursor-pointer' : '';
+  const hoverStyles = hoverable ? 'hover:shadow-lg transition-all duration-200 cursor-pointer' : '';
   const clickableStyles = onClick ? 'cursor-pointer' : '';
 
   return (
     <div
-      className={`rounded-lg shadow-md ${hoverStyles} ${clickableStyles} ${className}`}
-      style={{backgroundColor: '#FFFFFF'}}
+      className={`rounded-lg shadow-md transition-colors duration-300 ${hoverStyles} ${clickableStyles} ${className}`}
+      style={{
+        backgroundColor: 'var(--color-bg-secondary)',
+        color: 'var(--color-text-primary)'
+      }}
       onClick={onClick}
       {...props}
     >
@@ -32,7 +35,11 @@ const Card = ({
  * Card Header component
  */
 export const CardHeader = ({ children, className = '', ...props }) => (
-  <div className={`px-6 py-4 border-b ${className}`} style={{borderColor: '#E5E7EB'}} {...props}>
+  <div
+    className={`px-6 py-4 border-b transition-colors duration-300 ${className}`}
+    style={{borderColor: 'var(--color-border)'}}
+    {...props}
+  >
     {children}
   </div>
 );
@@ -50,7 +57,11 @@ export const CardBody = ({ children, className = '', ...props }) => (
  * Card Footer component
  */
 export const CardFooter = ({ children, className = '', ...props }) => (
-  <div className={`px-6 py-4 border-t ${className}`} style={{borderColor: '#E5E7EB'}} {...props}>
+  <div
+    className={`px-6 py-4 border-t transition-colors duration-300 ${className}`}
+    style={{borderColor: 'var(--color-border)'}}
+    {...props}
+  >
     {children}
   </div>
 );
