@@ -146,7 +146,7 @@ const Dashboard = () => {
 
           <div className="text-center relative z-10">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 tracking-tight" style={{color: '#ffffff'}}>
-              {user ? `Welcome back, ${user.name || user.username}!` : 'Welcome to OceanClean'}
+              {user ? `Welcome back, ${user.displayName || user.username}!` : 'Welcome to OceanClean'}
             </h1>
             <p className="text-xl sm:text-2xl max-w-3xl mx-auto leading-relaxed" style={{color: colors.heroText}}>
               {user
@@ -180,22 +180,22 @@ const Dashboard = () => {
       {/* Main Content - Instagram-style Post Feed */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-center flex-1">
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">Community Cleanup Adventures</h2>
-              <p className="text-gray-600">Share your beach cleaning journey and inspire others!</p>
-            </div>
-            {user && (
+          <div className="text-center mb-4">
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">Community Cleanup Adventures</h2>
+            <p className="text-gray-600">Share your beach cleaning journey and inspire others!</p>
+          </div>
+          {user && (
+            <div className="flex justify-center mb-4">
               <Button
                 onClick={() => setIsUploadModalOpen(true)}
-                className="ml-4 flex items-center gap-2"
+                className="flex items-center gap-2"
                 style={{backgroundColor: colors.buttonBg, color: 'white'}}
               >
                 <Upload className="h-5 w-5" />
                 <span className="hidden sm:inline">Share Post</span>
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Polaroid Post Grid */}

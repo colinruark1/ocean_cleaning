@@ -250,7 +250,8 @@ const Profile = () => {
           </div>
           <div className="flex justify-between items-start flex-wrap gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{user.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{user.displayName || user.username}</h1>
+              <p className="text-sm text-gray-500 mt-1">@{user.username}</p>
               <div className="flex items-center text-gray-600 mt-2 space-x-4 flex-wrap">
                 <span className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />

@@ -5,7 +5,8 @@
 
 export const mockUser = {
   id: '1',
-  name: 'Alex Rivera',
+  username: 'alexrivera',
+  displayName: 'Alex Rivera',
   email: 'alex@oceanclean.com',
   location: 'Santa Monica, CA',
   joined: 'January 2024',
@@ -200,7 +201,8 @@ export const mockAchievements = [
 export const mockCleanupPosts = [
   {
     id: 1,
-    username: 'Sarah Johnson',
+    username: 'sarahjohnson',
+    displayName: 'Sarah Johnson',
     location: 'Venice Beach, CA',
     date: 'Oct 23',
     imageUrl: 'https://picsum.photos/seed/beach1/500/500',
@@ -210,7 +212,8 @@ export const mockCleanupPosts = [
   },
   {
     id: 2,
-    username: 'Mike Chen',
+    username: 'mikechen',
+    displayName: 'Mike Chen',
     location: 'Santa Monica Pier',
     date: 'Oct 22',
     imageUrl: 'https://picsum.photos/seed/beach2/500/500',
@@ -220,7 +223,8 @@ export const mockCleanupPosts = [
   },
   {
     id: 3,
-    username: 'Ocean Warriors',
+    username: 'oceanwarriors',
+    displayName: 'Ocean Warriors',
     location: 'Malibu Coast',
     date: 'Oct 21',
     imageUrl: 'https://picsum.photos/seed/beach3/500/500',
@@ -230,7 +234,8 @@ export const mockCleanupPosts = [
   },
   {
     id: 4,
-    username: 'Emma Davis',
+    username: 'emmadavis',
+    displayName: 'Emma Davis',
     location: 'Laguna Beach',
     date: 'Oct 20',
     imageUrl: 'https://picsum.photos/seed/beach4/500/500',
@@ -240,7 +245,8 @@ export const mockCleanupPosts = [
   },
   {
     id: 5,
-    username: 'Beach Guardians',
+    username: 'beachguardians',
+    displayName: 'Beach Guardians',
     location: 'Huntington Beach',
     date: 'Oct 19',
     imageUrl: 'https://picsum.photos/seed/beach5/500/500',
@@ -250,7 +256,8 @@ export const mockCleanupPosts = [
   },
   {
     id: 6,
-    username: 'Carlos Martinez',
+    username: 'carlosmartinez',
+    displayName: 'Carlos Martinez',
     location: 'Newport Beach',
     date: 'Oct 18',
     imageUrl: 'https://picsum.photos/seed/beach6/500/500',
@@ -260,7 +267,8 @@ export const mockCleanupPosts = [
   },
   {
     id: 7,
-    username: 'Lisa Wang',
+    username: 'lisawang',
+    displayName: 'Lisa Wang',
     location: 'Seal Beach',
     date: 'Oct 17',
     imageUrl: 'https://picsum.photos/seed/beach7/500/500',
@@ -270,7 +278,8 @@ export const mockCleanupPosts = [
   },
   {
     id: 8,
-    username: 'Youth for Clean Seas',
+    username: 'youthforcleanseas',
+    displayName: 'Youth for Clean Seas',
     location: 'Redondo Beach',
     date: 'Oct 16',
     imageUrl: 'https://picsum.photos/seed/beach8/500/500',

@@ -137,7 +137,8 @@ const UploadPostModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
       }
 
       const postData = {
-        username: currentUser?.name || currentUser?.username || 'Anonymous',
+        username: currentUser?.username || 'Anonymous',
+        displayName: currentUser?.displayName || currentUser?.username || 'Anonymous',
         location: formData.location,
         imageUrl: imageUrl,
         caption: formData.caption,
