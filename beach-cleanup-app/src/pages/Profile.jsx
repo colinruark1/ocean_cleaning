@@ -83,11 +83,21 @@ const Profile = () => {
         (progress) => setUploadProgress((prev) => ({ ...prev, profile: progress }))
       );
 
-      await updateProfile({ profilePictureUrl });
+      console.log('Profile picture uploaded, data URL length:', profilePictureUrl?.length);
+      console.log('Profile picture URL preview:', profilePictureUrl?.substring(0, 100));
+
+      const result = await updateProfile({ profilePictureUrl });
+
+      if (result.success) {
+        console.log('Profile updated successfully');
+      } else {
+        throw new Error(result.error || 'Failed to update profile');
+      }
+
       setUploadProgress((prev) => ({ ...prev, profile: 0 }));
     } catch (error) {
       console.error('Error uploading profile picture:', error);
-      alert('Failed to upload profile picture');
+      alert('Failed to upload profile picture: ' + error.message);
       setUploadProgress((prev) => ({ ...prev, profile: 0 }));
     }
   };
@@ -194,19 +204,33 @@ const Profile = () => {
               className="relative group"
               title="Click to change profile picture"
             >
-              {user.profilePictureUrl ? (
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white bg-white shadow-lg">
+              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white">
+                {user.profilePictureUrl ? (
                   <img
                     src={user.profilePictureUrl}
                     alt={user.name}
                     className="w-full h-full object-cover"
+                    onLoad={(e) => {
+                      console.log('[Profile] ✓ Profile picture loaded successfully');
+                      console.log('[Profile] Image natural size:', e.target.naturalWidth, 'x', e.target.naturalHeight);
+                      console.log('[Profile] Data URL size:', user.profilePictureUrl?.length, 'chars');
+                      console.log('[Profile] Image element:', e.target);
+                      console.log('[Profile] Computed style display:', window.getComputedStyle(e.target).display);
+                      console.log('[Profile] Computed style opacity:', window.getComputedStyle(e.target).opacity);
+                    }}
+                    onError={(e) => {
+                      console.error('[Profile] ✗ Profile picture failed to load');
+                      console.error('[Profile] Data URL length:', user.profilePictureUrl?.length);
+                      console.error('[Profile] Data URL preview:', user.profilePictureUrl?.substring(0, 100));
+                      console.error('[Profile] Error details:', e);
+                    }}
                   />
-                </div>
-              ) : (
-                <Avatar name={user.name} size="xl" className="border-4 border-white shadow-lg" />
-              )}
+                ) : (
+                  <Avatar name={user.name} size="xl" className="" />
+                )}
+              </div>
               {/* Hover Overlay */}
-              <div className="absolute inset-0 rounded-full bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center border-4 border-white">
+              <div className="absolute inset-0 rounded-full bg-transparent group-hover:bg-gray-900 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center pointer-events-none">
                 <Camera className="h-10 w-10 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
               </div>
             </button>

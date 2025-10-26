@@ -19,7 +19,17 @@ export const AuthProvider = ({ children }) => {
         // TODO: Check for stored token and validate
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+
+          // Migrate old 'avatar' field to 'profilePictureUrl'
+          if (parsedUser.avatar !== undefined && parsedUser.profilePictureUrl === undefined) {
+            parsedUser.profilePictureUrl = parsedUser.avatar;
+            delete parsedUser.avatar;
+            localStorage.setItem('user', JSON.stringify(parsedUser));
+            console.log('Migrated avatar field to profilePictureUrl');
+          }
+
+          setUser(parsedUser);
           setIsAuthenticated(true);
         }
       } catch (error) {
@@ -48,7 +58,7 @@ export const AuthProvider = ({ children }) => {
         location: 'Santa Monica, CA',
         joined: 'January 2024',
         bio: 'Ocean lover and environmental advocate committed to protecting our beaches',
-        avatar: null,
+        profilePictureUrl: null,
       };
 
       setUser(mockUser);
@@ -100,7 +110,7 @@ export const AuthProvider = ({ children }) => {
         bio: userData.bio || '',
         location: userData.location || '',
         joined: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-        avatar: null,
+        profilePictureUrl: null,
       };
 
       setUser(newUser);
@@ -127,8 +137,29 @@ export const AuthProvider = ({ children }) => {
       // TODO: Replace with actual API call when backend is ready
       // For now, just update local state directly
       const updatedUser = { ...user, ...updates };
+
+      console.log('Updating user profile with:', Object.keys(updates));
+      if (updates.profilePictureUrl) {
+        console.log('Profile picture URL length:', updates.profilePictureUrl.length);
+      }
+
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+
+      try {
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        console.log('User saved to localStorage successfully');
+
+        // Verify the save
+        const saved = localStorage.getItem('user');
+        const parsed = JSON.parse(saved);
+        console.log('Verified - stored user has profilePictureUrl:', !!parsed.profilePictureUrl);
+        if (parsed.profilePictureUrl) {
+          console.log('Stored profilePictureUrl length:', parsed.profilePictureUrl.length);
+        }
+      } catch (storageError) {
+        console.error('LocalStorage error:', storageError);
+        throw new Error('Failed to save to localStorage: ' + storageError.message);
+      }
 
       return { success: true, user: updatedUser };
     } catch (error) {

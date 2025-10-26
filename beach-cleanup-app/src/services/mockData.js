@@ -10,7 +10,7 @@ export const mockUser = {
   location: 'Santa Monica, CA',
   joined: 'January 2024',
   bio: 'Ocean lover and environmental advocate committed to protecting our beaches',
-  avatar: null,
+  profilePictureUrl: null,
 };
 
 export const mockStats = {

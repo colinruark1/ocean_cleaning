@@ -51,40 +51,83 @@ export const compressImage = (file, maxWidth = 1200, quality = 0.85) => {
       const img = new Image();
 
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
+        try {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
 
-        // Calculate new dimensions
-        if (width > maxWidth) {
-          height = (maxWidth / width) * height;
-          width = maxWidth;
+          console.log(`[Compression] Original image dimensions: ${width}x${height}, File size: ${file.size} bytes`);
+
+          // Calculate new dimensions
+          if (width > maxWidth) {
+            height = Math.round((maxWidth / width) * height);
+            width = maxWidth;
+          }
+
+          console.log(`[Compression] Target dimensions: ${width}x${height}`);
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d', { alpha: false });
+          if (!ctx) {
+            reject(new Error('Failed to get canvas context'));
+            return;
+          }
+
+          console.log(`[Compression] Canvas context created successfully`);
+
+          // Fill with white background first (in case image has transparency)
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, width, height);
+
+          console.log(`[Compression] White background filled`);
+
+          // Enable image smoothing for better quality
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+
+          // Draw the image
+          ctx.drawImage(img, 0, 0, width, height);
+
+          console.log(`[Compression] Image drawn on canvas`);
+
+          // Force output to JPEG for better compression
+          const outputType = 'image/jpeg';
+          console.log(`[Compression] Converting to ${outputType} with quality ${quality}`);
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                console.log(`[Compression] ✓ Blob created - Original: ${file.size} bytes → Compressed: ${blob.size} bytes (${Math.round((blob.size / file.size) * 100)}%)`);
+                resolve(blob);
+              } else {
+                console.error('[Compression] ✗ Failed to create blob from canvas');
+                reject(new Error('Failed to create blob from canvas'));
+              }
+            },
+            outputType,
+            quality
+          );
+        } catch (error) {
+          console.error('[Compression] Canvas processing error:', error);
+          reject(error);
         }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject(new Error('Failed to compress image'));
-            }
-          },
-          file.type,
-          quality
-        );
       };
 
-      img.onerror = () => reject(new Error('Failed to load image'));
+      img.onerror = (error) => {
+        console.error('[Compression] Image load error:', error);
+        reject(new Error('Failed to load image for compression'));
+      };
+
       img.src = e.target.result;
     };
 
-    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.onerror = (error) => {
+      console.error('[Compression] FileReader error:', error);
+      reject(new Error('Failed to read file'));
+    };
+
     reader.readAsDataURL(file);
   });
 };
@@ -112,6 +155,8 @@ export const generateFilename = (userId, type, extension) => {
  */
 export const uploadImage = async (file, userId, type = 'post', onProgress = null) => {
   try {
+    console.log(`[Upload] Starting upload for ${type} image - File: ${file.name}, Size: ${file.size} bytes, Type: ${file.type}`);
+
     // Validate the file
     const validation = validateImage(file);
     if (!validation.valid) {
@@ -120,24 +165,63 @@ export const uploadImage = async (file, userId, type = 'post', onProgress = null
 
     if (onProgress) onProgress(30);
 
-    // Compress the image
-    const compressedBlob = await compressImage(file);
+    // Compress the image with different settings based on type
+    let compressedBlob;
+    if (type === 'profile') {
+      // Profile pictures: higher quality, smaller dimensions for better results
+      console.log('[Upload] Compressing profile picture (400px, quality 0.90)');
+      compressedBlob = await compressImage(file, 400, 0.90);
+    } else if (type === 'banner') {
+      // Banners need more width
+      console.log('[Upload] Compressing banner (1500px, quality 0.85)');
+      compressedBlob = await compressImage(file, 1500, 0.85);
+    } else {
+      // Default for posts
+      console.log('[Upload] Compressing post image (1200px, quality 0.85)');
+      compressedBlob = await compressImage(file, 1200, 0.85);
+    }
 
     if (onProgress) onProgress(60);
+
+    const compressionRatio = Math.round((compressedBlob.size / file.size) * 100);
+    console.log(`[Upload] Compression complete - Original: ${file.size} bytes → Compressed: ${compressedBlob.size} bytes (${compressionRatio}%)`);
 
     // Convert compressed blob to data URL
     const dataUrl = await new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = () => reject(new Error('Failed to read compressed image'));
+      reader.onload = (e) => {
+        const result = e.target.result;
+
+        // Validate that the data URL is valid
+        if (!result || typeof result !== 'string') {
+          console.error('[Upload] ✗ Invalid data URL: not a string');
+          reject(new Error('Invalid data URL: not a string'));
+          return;
+        }
+
+        if (!result.startsWith('data:image/')) {
+          console.error('[Upload] ✗ Invalid data URL: does not start with data:image/');
+          reject(new Error('Invalid data URL: does not start with data:image/'));
+          return;
+        }
+
+        console.log(`[Upload] ✓ Data URL created - Length: ${result.length} chars (${Math.round(result.length / 1024)}KB)`);
+        console.log(`[Upload] ✓ Data URL format: ${result.substring(0, 50)}...`);
+        resolve(result);
+      };
+      reader.onerror = () => {
+        console.error('[Upload] ✗ Failed to read compressed image');
+        reject(new Error('Failed to read compressed image'));
+      };
       reader.readAsDataURL(compressedBlob);
     });
 
     if (onProgress) onProgress(100);
 
+    console.log(`[Upload] ✓ Upload complete for ${type}`);
     return dataUrl;
   } catch (error) {
-    console.error('Image upload error:', error);
+    console.error('[Upload] ✗ Upload error:', error);
     throw error;
   }
 };
